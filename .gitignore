@@ -2,6 +2,7 @@ data/credit_card_transactions-ibm_v2.csv
 data/test_set.csv
 data/sd254_cards.csv
 data/sd254_users.csv
+data/
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
