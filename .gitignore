@@ -1,4 +1,4 @@
-final_merged_df.csv
+data/final_merged_df.csv
 
 data/credit_card_transactions-ibm_v2.csv
 data/test_set.csv
