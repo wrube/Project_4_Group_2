@@ -6,8 +6,8 @@ import numpy as np
 from pathlib import Path
 import pandas as pd
 
-# import modules
-sys.path.append(Path.cwd().parent)
+#import modules
+# sys.path.append(Path.cwd().parent)
 from proj_modules import *
 
 
