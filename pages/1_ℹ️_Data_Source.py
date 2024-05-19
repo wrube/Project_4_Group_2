@@ -12,8 +12,14 @@ sys.path.append(Path.cwd().parent)
 from proj_modules import *
 
 
+# ****************************************************************************************************************
+# ----------------------------------------------------------------------------------------------------------------
 # setup page
-st.set_page_config(page_title="Raw Data from Kaggle", page_icon="📈")
+# ----------------------------------------------------------------------------------------------------------------
+
+
+st.set_page_config(page_title="Raw Data from Kaggle", 
+                   page_icon="ℹ️")
 
 # ----------------------------------------------------------------------------------------------------------------
 # page content
@@ -40,26 +46,33 @@ st.markdown(
     """
 )
 
-
 # ----------------------------------------------------------------------------------------------------------------
 # Tabs
 # ----------------------------------------------------------------------------------------------------------------
 
-# load the users csv
-users_path = Path.cwd() / 'data/sample_users.csv'
-# sample_path = 
-
-sample_users_df = pd.read_csv(users_path)
-
-tab1, tab2, tab3 = st.tabs(["Cat", "Dog", "Owl"])
 
 
-st.dataframe(sample_users_df.head(20))
+tab_users, tab_cards, tab_transactions = st.tabs(["Credit Card Users", "Credit Card Details", "Credit Card Transactions"])
 
-st.write(f"{sample_users_df.info()}")
-print(sample_users_df.info())
 
-st.markdown("""
-As can be seen columns, there needs to be a clean up!.......
-"""
-)
+with tab_users:
+    # Before
+    # load the sample users csv
+    st.markdown("""
+    ## Before 
+    """
+    )
+    users_path = Path.cwd() / 'data/sample_users.csv'
+
+    sample_users_df = pd.read_csv(users_path)
+
+    st.dataframe(sample_users_df.head())
+
+    # load the users csv
+    users_path = Path.cwd() / 'data/sample_users.csv'
+    # sample_path = 
+
+    st.markdown("""
+    As can be seen columns, there needs to be a clean up!.......
+    """
+    )
