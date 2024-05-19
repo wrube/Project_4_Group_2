@@ -15,10 +15,17 @@ from proj_modules import *
 # setup page
 st.set_page_config(page_title="Raw Data from Kaggle", page_icon="📈")
 
-
+# ----------------------------------------------------------------------------------------------------------------
 # page content
-st.markdown("# Extract Transform and Load")
-st.sidebar.header("Extract Transform and Load")
+# ----------------------------------------------------------------------------------------------------------------
+
+st.markdown("# Data Load")
+st.sidebar.header("Data Load")
+
+# ----------------------------------------------------------------------------------------------------------------
+# Section Introduction
+# ----------------------------------------------------------------------------------------------------------------
+
 st.markdown(
     """ 
     
@@ -34,11 +41,18 @@ st.markdown(
 )
 
 
+# ----------------------------------------------------------------------------------------------------------------
+# Tabs
+# ----------------------------------------------------------------------------------------------------------------
 
 # load the users csv
 users_path = Path.cwd() / 'data/sample_users.csv'
+# sample_path = 
 
 sample_users_df = pd.read_csv(users_path)
+
+tab1, tab2, tab3 = st.tabs(["Cat", "Dog", "Owl"])
+
 
 st.dataframe(sample_users_df.head(20))
 
