@@ -295,6 +295,10 @@ with tab_transactions:
                                 'Is Fraud?': convert_yes_no_to_binary
                                 }
         
+        transaction_dtypes = {'Use Chip': 'category',
+                              'Merchant State': 'category',
+        }
+        
         # load data
         cards_df = load_csv_data(cards_file,
                                  cards_columns_import,
