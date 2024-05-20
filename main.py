@@ -18,13 +18,13 @@ from proj_modules import *
 # ----------------------------------------------------------------------------------------------------------------
 
 if 'users_df' not in st.session_state:
-    st.session_state.filtered_df = pd.DataFrame()
+    st.session_state.users_df = pd.DataFrame()
 
 if 'cards_df' not in st.session_state:
-    st.session_state.filtered_df = pd.DataFrame()
+    st.session_state.cards_df = pd.DataFrame()
 
 if 'transactions_df' not in st.session_state:
-    st.session_state.filtered_df = pd.DataFrame()
+    st.session_state.transactions_df = pd.DataFrame()
 
 # ----------------------------------------------------------------------------------------------------------------
 # setup page
@@ -46,4 +46,3 @@ st.markdown("""
 We're trying to predict fraudlent credit-card transactions using a synthetic dataset from Kaggle.
 """
 )
-

@@ -1,5 +1,6 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 
 #----------------------------------------------------------
 # Functions for data import
@@ -63,3 +64,22 @@ def convert_yes_no_to_binary(item):
     else:
         result = 0 
     return np.int8(result)
+
+
+# @st.cache_data
+# def load_csv_data(columns, converters, dtypes):
+#     df = pd.read_csv(users_path, 
+#                         usecols=columns,
+#                         converters=converters,
+#                         dtype=dtypes
+#                         )
+#     return df
+
+@st.cache_data
+def load_csv_data(file, columns, _converters, _dtypes):
+    df = pd.read_csv(file, 
+                        usecols=columns,
+                        converters=_converters,
+                        dtype=_dtypes
+                        )
+    return df
