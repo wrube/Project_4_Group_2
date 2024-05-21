@@ -42,38 +42,44 @@ cat_column = st.sidebar.radio("Data Type",
                               options=["Continuous", "Categorical"],
                               horizontal=True
                                 )
+st.sidebar.markdown("#### Choose your column")
 
+if cat_column == 'Categorical':
+    columns = ['Use Chip',
+                'Merchant State',
+                'Errors?',
+                'Has Chip',
+                'International',
+                'Online',
+                'day_of_week',
+                'time_of_day']
+else:
+    columns = ['Amount',
+                'Per Capita Income - Zipcode',
+                'Yearly Income - Person',
+                'Total Debt',
+                'FICO Score',
+                'Num Credit Cards',
+                'Cards Issued',
+                'Age_at_transaction',
+                'income_to_debt',
+                'timestamp',
+                'distances']
 
-st.markdown(""" ### Choose your column
-            """)
-
-
-
+dropdown_name = f"{cat_column} Columns"
+column = st.sidebar.selectbox(dropdown_name, columns)
 
 
 if len(st.session_state.final_cleaned_df) > 0:
     final_cleaned_df = st.session_state.final_cleaned_df
-    col
-    if cat_column == 'Continuous':
-        columns = ['Use Chip',
-                    'Merchant State',
-                    'Errors?',
-                    'Is Fraud?',
-                    'Has Chip',
-                    'International',
-                    'Online',
-                    'day_of_week',
-                    'time_of_day']
+
+    if cat_column == 'Categorical':
+        st.write(final_cleaned_df.pivot_table(index=column, 
+                                              columns='Is Fraud?', 
+                                              aggfunc='size'))
+    
+
     else:
-        columns = ['Amount',
-                    'Per Capita Income - Zipcode',
-                    'Yearly Income - Person',
-                    'Total Debt',
-                    'FICO Score',
-                    'Num Credit Cards',
-                    'Cards Issued',
-                    'Age_at_transaction',
-                    'income_to_debt',
-                    'timestamp',
-                    'distances']
+        st.write(final_cleaned_df[column].describe())
+
 
