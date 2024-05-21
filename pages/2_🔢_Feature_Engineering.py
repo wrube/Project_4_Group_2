@@ -51,7 +51,7 @@ Additional features can be extracted from the dataset which we deemed useful to 
 # ----------------------------------------------------------------------------------------------------------------
 
 
-if 'merged_df' in st.session_state:
+if len(st.session_state.merged_df) > 0:
     merged_df = st.session_state.merged_df
     with st.echo():
         # 
@@ -161,6 +161,7 @@ if 'merged_df' in st.session_state:
                    'datetime',
                    'Card on Dark Web'
                    ]
+    
 
     # drop the columns
     merged_and_drop_df = merged_df.drop(columns=columns_to_drop, axis=1)
@@ -174,5 +175,11 @@ if 'merged_df' in st.session_state:
     # replace NaN in Merchant State with Online
     merged_and_drop_df['Merchant State'] = merged_and_drop_df['Merchant State'].fillna('Online')
 
-    
+    st.session_state.final_cleaned_df = merged_and_drop_df
+
+st.markdown("")  
+if len(st.session_state.final_cleaned_df) > 0:
+    st.dataframe(st.session_state.final_cleaned_df)
+
+
     

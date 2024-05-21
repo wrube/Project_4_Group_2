@@ -78,18 +78,24 @@ st.markdown(
 # ----------------------------------------------------------------------------------------------------------------
 
 
-users_file = st.sidebar.file_uploader("Load Credit Card Users CSV",
-                                      type="csv")
+users_file = st.sidebar.text_input("Load Credit Card Users CSV",
+                                   value="data/sd254_users.csv",
+                                    #   type="csv"
+                                      )
 if users_file:
     st.session_state.users_csv_loaded = True
 
-cards_file = st.sidebar.file_uploader("Load Credit Card Details CSV",
-                                      type="csv")
+cards_file = st.sidebar.text_input("Load Credit Card Details CSV",
+                                   value="data/sd254_cards.csv",
+                                    #   type="csv"
+                                      )
 if cards_file:
     st.session_state.cards_csv_loaded = True
 
-transactions_file = st.sidebar.file_uploader("Load Transactions CSV",
-                                      type="csv")
+transactions_file = st.sidebar.text_input("Load Transactions CSV",
+                                          value="data/transactions_users_5.csv",
+                                    #   type="csv"
+                                      )
 if transactions_file:
     st.session_state.transactions_csv_loaded = True
 
@@ -133,37 +139,40 @@ with tab_users:
     """
     )
 
-    load_users_button = st.button("Click to transform credit card users",
-                                  disabled = not st.session_state.users_csv_loaded 
-                                  )
-    if load_users_button:
-        users_columns_import = ['Birth Year', 
-                            'Zipcode', 
-                            'Per Capita Income - Zipcode',
-                            'Yearly Income - Person', 
-                            'Total Debt',
-                            'FICO Score',
-                            'Num Credit Cards']
+    # load_users_button = st.button("Click to transform credit card users",
+    #                               disabled = not st.session_state.users_csv_loaded 
+    #                               )
+    # if load_users_button:
 
-        user_converters = {'Zipcode': add_leading_zero_to_zipcode,
-                        'Per Capita Income - Zipcode': remove_dollar_and_convert,
-                        'Yearly Income - Person': remove_dollar_and_convert,
-                        'Total Debt': remove_dollar_and_convert}
+    users_path = Path.cwd() / users_file
 
-        users_dtypes = {'Birth Year': np.uint16,
-                        'FICO Score': np.uint16,
-                        'Num Credit Cards': np.uint8}
+    users_columns_import = ['Birth Year', 
+                        'Zipcode', 
+                        'Per Capita Income - Zipcode',
+                        'Yearly Income - Person', 
+                        'Total Debt',
+                        'FICO Score',
+                        'Num Credit Cards']
+
+    user_converters = {'Zipcode': add_leading_zero_to_zipcode,
+                    'Per Capita Income - Zipcode': remove_dollar_and_convert,
+                    'Yearly Income - Person': remove_dollar_and_convert,
+                    'Total Debt': remove_dollar_and_convert}
+
+    users_dtypes = {'Birth Year': np.uint16,
+                    'FICO Score': np.uint16,
+                    'Num Credit Cards': np.uint8}
+    
+    # load data
+    users_df = load_csv_data(users_path,
+                                users_columns_import,
+                                user_converters,
+                                users_dtypes)
         
-        # load data
-        users_df = load_csv_data(users_file,
-                                 users_columns_import,
-                                 user_converters,
-                                 users_dtypes)
+    # add Users column
+    users_df['User'] = users_df.index
         
-        # add Users column
-        users_df['User'] = users_df.index
-        
-        st.session_state.users_df = users_df
+    st.session_state.users_df = users_df
 
     st.markdown("### Loaded and Cleansed Users Dataframe")    
     st.dataframe(st.session_state.users_df)
@@ -201,34 +210,36 @@ with tab_cards:
     """
     )
 
-    load_cards_button = st.button("Click to transform credit card details",
-                                  disabled = not st.session_state.cards_csv_loaded 
-                                  )
+    # load_cards_button = st.button("Click to transform credit card details",
+    #                               disabled = not st.session_state.cards_csv_loaded 
+    #                               )
     
-    if load_cards_button:
-        cards_columns_import = ['User',	
-                                'CARD INDEX',
-                                'Has Chip',
-                                'Cards Issued',
-                                'Year PIN last Changed',
-                                'Card on Dark Web'
-                                ]
+    # if load_cards_button:
+    cards_path = Path.cwd() / cards_file
 
-        cards_dtypes = {'CARD INDEX': np.uint8,
-                        'Cards Issued': np.uint8,
-                        'Year PIN last Changed': np.uint16
-                        }
+    cards_columns_import = ['User',	
+                            'CARD INDEX',
+                            'Has Chip',
+                            'Cards Issued',
+                            'Year PIN last Changed',
+                            'Card on Dark Web'
+                            ]
 
-        cards_conversions = {'Card on Dark Web': convert_yes_no_to_binary,
-                            'Has Chip': convert_yes_no_to_binary}
-        
-        # load data
-        cards_df = load_csv_data(cards_file,
-                                 cards_columns_import,
-                                 cards_conversions,
-                                 cards_dtypes)
-        
-        st.session_state.cards_df = cards_df
+    cards_dtypes = {'CARD INDEX': np.uint8,
+                    'Cards Issued': np.uint8,
+                    'Year PIN last Changed': np.uint16
+                    }
+
+    cards_conversions = {'Card on Dark Web': convert_yes_no_to_binary,
+                        'Has Chip': convert_yes_no_to_binary}
+    
+    # load data
+    cards_df = load_csv_data(cards_path,
+                                cards_columns_import,
+                                cards_conversions,
+                                cards_dtypes)
+    
+    st.session_state.cards_df = cards_df
 
         
     st.markdown("### Loaded and Cleansed Credit Cards Dataframe")    
@@ -276,46 +287,44 @@ with tab_transactions:
     """
     )
 
-    load_transactions_button = st.button("Click to transform transaction details",
-                                  disabled = not st.session_state.transactions_csv_loaded
-                                  )
+    # load_transactions_button = st.button("Click to transform transaction details",
+    #                               disabled = not st.session_state.transactions_csv_loaded
+    #                               )
     
-    if load_transactions_button:
-        transactions_columns_import = ['User',
-                                    'Card',
-                                    'Year',
-                                    'Month',
-                                    'Day',
-                                    'Time',
-                                    'Amount',
-                                    'Use Chip',
-                                    'Merchant City',
-                                    'Merchant State',
-                                    'Zip',
-                                    'MCC',
-                                    'Errors?',
-                                    'Is Fraud?'
-                                    ]
+    # if load_transactions_button:
+    transaction_path = Path.cwd() / transactions_file
 
-        transaction_converters = {'Zip': add_leading_zero_to_zipcode,
-                                'Amount': remove_dollar_and_convert_float,
-                                'Is Fraud?': convert_yes_no_to_binary
-                                }
-        
-        transaction_dtypes = {'Use Chip': 'category',
-                              'Merchant State': 'category',
-                              'MCC': 'category',
-                              'Errors?': 'category'
-        }
-        
-        # load data
-        transactions_df = load_csv_data(transactions_file,
-                                 transactions_columns_import,
-                                 transaction_converters,
-                                 transaction_dtypes
-                                 )
-        
-        st.session_state.transactions_df = transactions_df
+    transactions_columns_import = ['User',
+                                'Card',
+                                'Year',
+                                'Month',
+                                'Day',
+                                'Time',
+                                'Amount',
+                                'Use Chip',
+                                'Merchant City',
+                                'Merchant State',
+                                'Zip',
+                                'MCC',
+                                'Errors?',
+                                'Is Fraud?'
+                                ]
+
+    transaction_converters = {'Zip': add_leading_zero_to_zipcode,
+                            'Amount': remove_dollar_and_convert_float,
+                            'Is Fraud?': convert_yes_no_to_binary
+                            }
+    
+    transaction_dtypes = {'MCC': 'category'}
+    
+    # load data
+    transactions_df = load_csv_data(transaction_path,
+                                transactions_columns_import,
+                                transaction_converters,
+                                transaction_dtypes
+                                )
+    
+    st.session_state.transactions_df = transactions_df
 
         
     st.markdown("### Loaded and Cleansed Transactions Dataframe")    
@@ -354,5 +363,7 @@ if merge_button:
     
     # save to session state
     st.session_state.merged_df = merged_df
-    
+
+
+  
 st.dataframe(st.session_state.merged_df)
