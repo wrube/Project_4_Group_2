@@ -44,7 +44,7 @@ if 'merged_df' not in st.session_state:
 
 
 st.set_page_config(page_title="Raw Data from Kaggle", 
-                   page_icon="ℹ️")
+                   page_icon="⬇️")
 
 # ----------------------------------------------------------------------------------------------------------------
 # page content
