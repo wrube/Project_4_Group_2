@@ -80,21 +80,18 @@ st.markdown(
 
 users_file = st.sidebar.text_input("Load Credit Card Users CSV",
                                    value="data/sd254_users.csv",
-                                    #   type="csv"
                                       )
 if users_file:
     st.session_state.users_csv_loaded = True
 
 cards_file = st.sidebar.text_input("Load Credit Card Details CSV",
                                    value="data/sd254_cards.csv",
-                                    #   type="csv"
                                       )
 if cards_file:
     st.session_state.cards_csv_loaded = True
 
 transactions_file = st.sidebar.text_input("Load Transactions CSV",
                                           value="data/transactions_users_5.csv",
-                                    #   type="csv"
                                       )
 if transactions_file:
     st.session_state.transactions_csv_loaded = True
@@ -312,10 +309,11 @@ with tab_transactions:
 
     transaction_converters = {'Zip': add_leading_zero_to_zipcode,
                             'Amount': remove_dollar_and_convert_float,
-                            'Is Fraud?': convert_yes_no_to_binary
+                            # 'Is Fraud?': convert_yes_no_to_binary
                             }
     
-    transaction_dtypes = {'MCC': 'category'}
+    transaction_dtypes = {'MCC': 'category',
+                          'Is Fraud?': 'category'}
     
     # load data
     transactions_df = load_csv_data(transaction_path,
