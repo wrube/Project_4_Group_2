@@ -33,6 +33,9 @@ if 'cards_df' not in st.session_state:
 if 'transactions_df' not in st.session_state:
     st.session_state.transactions_df = pd.DataFrame()
 
+if 'merged_df' not in st.session_state:
+    st.session_state.merged_df = pd.DataFrame()
+
 
 # ****************************************************************************************************************
 # ----------------------------------------------------------------------------------------------------------------
@@ -63,7 +66,8 @@ st.markdown(
     - `credit_card_transactions-ibm_v2.csv`: Transactions
 
 
-    ## Credit Card holders
+    ## Instructions
+    
 
     """
 )
@@ -156,10 +160,13 @@ with tab_users:
                                  user_converters,
                                  users_dtypes)
         
+        # add Users column
+        users_df['User'] = users_df.index
+        
         st.session_state.users_df = users_df
 
-        st.markdown("### Loaded and Cleansed Users Dataframe")    
-        st.dataframe(st.session_state.head())
+    st.markdown("### Loaded and Cleansed Users Dataframe")    
+    st.dataframe(st.session_state.users_df)
 
 
 
@@ -224,8 +231,8 @@ with tab_cards:
         st.session_state.cards_df = cards_df
 
         
-        st.markdown("### Loaded and Cleansed Credit Cards Dataframe")    
-        st.dataframe(st.session_state.cards_df.head())
+    st.markdown("### Loaded and Cleansed Credit Cards Dataframe")    
+    st.dataframe(st.session_state.cards_df)
 
 
 
@@ -270,7 +277,7 @@ with tab_transactions:
     )
 
     load_transactions_button = st.button("Click to transform transaction details",
-                                  disabled = not st.session_state.transaction_csv_loaded 
+                                  disabled = not st.session_state.transactions_csv_loaded
                                   )
     
     if load_transactions_button:
@@ -297,21 +304,55 @@ with tab_transactions:
         
         transaction_dtypes = {'Use Chip': 'category',
                               'Merchant State': 'category',
+                              'MCC': 'category',
+                              'Errors?': 'category'
         }
         
         # load data
-        cards_df = load_csv_data(cards_file,
-                                 cards_columns_import,
-                                 cards_conversions,
-                                 cards_dtypes
+        transactions_df = load_csv_data(transactions_file,
+                                 transactions_columns_import,
+                                 transaction_converters,
+                                 transaction_dtypes
                                  )
         
-        st.session_state.cards_df = cards_df
+        st.session_state.transactions_df = transactions_df
 
         
-        st.markdown("### Loaded and Cleansed Credit Cards Dataframe")    
-        st.dataframe(st.session_state.cards_df.head())
+    st.markdown("### Loaded and Cleansed Transactions Dataframe")    
+    st.dataframe(st.session_state.transactions_df)
 
 
 
 # ----------------------------------------------------------------------------------------------------------------
+# Merging into one
+# ----------------------------------------------------------------------------------------------------------------
+
+st.markdown("""
+## Merging
+
+Once all datasets are loaded and transformed, we can start merging the dataset.
+
+This is done in 2 steps as shown below:
+"""
+)
+
+merge_button = st.button("Merge the dataframes",
+                         disabled = (len(st.session_state.users_df) == 0) |
+                                    (len(st.session_state.cards_df) == 0) |
+                                     (len(st.session_state.transactions_df) == 0)
+                         )
+
+if merge_button:
+    with st.echo():
+        merge_step_1 = st.session_state.transactions_df.merge(
+            st.session_state.users_df, how='inner', on='User')
+
+        merged_df = merge_step_1.merge(st.session_state.cards_df, 
+                                       how='inner', 
+                                       left_on=['User', 'Card'], 
+                                       right_on=['User', 'CARD INDEX'])
+    
+    # save to session state
+    st.session_state.merged_df = merged_df
+    
+st.dataframe(st.session_state.merged_df)
