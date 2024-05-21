@@ -3,6 +3,7 @@ data/test_set.csv
 data/sd254_cards.csv
 data/sd254_users.csv
 data/User0_credit_card_transactions.csv
+data/transactions_users_500.csv
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
