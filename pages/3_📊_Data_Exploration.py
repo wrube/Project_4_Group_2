@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from scipy.stats import chi2_contingency
+from scipy.stats import chi2_contingency, ttest_ind
 
 #import modules
 # sys.path.append(Path.cwd().parent)
@@ -189,7 +189,8 @@ Here we use the scipy package for the calculation
 
         # category_df = final_cleaned_df[[column, 'Is Fraud?']].groupby('Is Fraud?')
         st.markdown("## Descriptive Statistics Summaries")
-        col1, col2= st.columns(2, gap='medium')
+
+        col1, col2, col3 = st.columns([0.25, 0.25, 0.5])
 
         with col1:
             st.markdown("### Not Fraud")
@@ -201,11 +202,29 @@ Here we use the scipy package for the calculation
             # print the table
             st.dataframe(fraud_df.describe())
 
+        with col3:
+            st.markdown("""
+### Statistical Significance
+
+Using the two sample Welech's t-test we can test for significance betweens the 
+means of 'Fraud' and 'Not Fraud' of this category. 
+
+Here we use the scipy package for the calculation                        
+            """    
+            )
+            with st.echo():
+                t_test = ttest_ind(not_fraud_df, 
+                                   fraud_df, 
+                                   equal_var=False)
+
+            st.write(f"t-statistic: {t_test.statistic:.2f}")
+            st.write(f"P-value:  {t_test.pvalue:.2f}")
 
         # Plots
         fig2, (ax1, ax2) = plt.subplots(1, 2, tight_layout=True,   )
 
-        # int_dtypes = ['int8', 'uint8', 'int16', 'uint16', 'int32']
+
+        # set bin size depending on numeric type
         if not_fraud_df.dtype in ['int8', 'uint8']:
             n_bins=5
         elif not_fraud_df.dtype in ['int16', 'uint16']:
@@ -213,8 +232,6 @@ Here we use the scipy package for the calculation
         else:
             n_bins = 50
 
-        st.write(not_fraud_df.dtype)
-        # n_bins = 50
         ax1.hist(not_fraud_df, bins=n_bins, label='Not Fraud', alpha=0.4, density=True)
         ax1.hist(fraud_df, bins=n_bins, label='Fraud', alpha=0.4, density=True)
         ax1.legend(shadow=True)

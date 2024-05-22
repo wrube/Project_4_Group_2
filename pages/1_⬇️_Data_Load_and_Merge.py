@@ -91,7 +91,7 @@ if cards_file:
     st.session_state.cards_csv_loaded = True
 
 transactions_file = st.sidebar.text_input("Load Transactions CSV",
-                                          value="data/transactions_users_5.csv",
+                                          value="data/transactions_users_100.csv",
                                       )
 if transactions_file:
     st.session_state.transactions_csv_loaded = True
