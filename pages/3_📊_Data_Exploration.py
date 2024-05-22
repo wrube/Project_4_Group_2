@@ -7,6 +7,8 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from scipy.stats import chi2_contingency
+
 #import modules
 # sys.path.append(Path.cwd().parent)
 from proj_modules import *
@@ -101,6 +103,7 @@ if len(st.session_state.final_cleaned_df) > 0:
 
         max_categories = 7
 
+
         col1, col2 = st.columns(2, gap='medium')
 
         with col1:
@@ -148,11 +151,25 @@ if len(st.session_state.final_cleaned_df) > 0:
         ax2.set_title(f"Top Relative Frequencies of Fraudulent \n Transactions by {column}",
                       fontsize=10)
 
-        fig.set_figheight(3)
+        fig.set_figheight(5)
         fig.tight_layout()
 
         st.pyplot(fig)
         
+        st.markdown(f"### Statistical Significance of '{column}' Feature
+                    
+        Using the chi-squared test, we can test for the significance of this category. 
+        Here we use the scipy package for the calculation  
+                    ")
+        # statistical chi-squared test
+        # Performing chi-squared test of independence
+
+        with st.echo():
+            chi2, p_value, dof, expected = chi2_contingency(pivot_df)
+
+        st.write(f"Chi-squared statistic: {chi2}")
+        st.write(f"P-value:  {p_value}")
+        st.write(expected)
 
     
 # ----------------------------------------------------------------------------------------------------------------
