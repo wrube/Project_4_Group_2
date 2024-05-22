@@ -79,7 +79,7 @@ column = st.sidebar.selectbox(dropdown_name, columns)
 if len(st.session_state.final_cleaned_df) > 0:
     final_cleaned_df = st.session_state.final_cleaned_df
 
-    st.markdown(f"### Exploring the '{column}' Feature")
+    st.markdown(f"## Exploring the '{column}' Feature")
 
 # ----------------------------------------------------------------------------------------------------------------
 # Categorical Display
@@ -103,8 +103,26 @@ if len(st.session_state.final_cleaned_df) > 0:
 
         max_categories = 7
 
+        st.markdown(f"""
+### Statistical Significance of '{column}' Feature
+                    
+Using the chi-squared test, we can test for the significance of this category. 
+Here we use the scipy package for the calculation  
+                    """)
+        
+        # statistical chi-squared test
+        # Performing chi-squared test of independence
 
-        col1, col2 = st.columns(2, gap='medium')
+        with st.echo():
+            chi2, p_value, dof, expected = chi2_contingency(pivot_df)
+
+        st.write(f"Chi-squared statistic: {chi2:.2f}")
+        st.write(f"P-value:  {p_value:.2f}")
+
+        expected_df = pd.DataFrame(expected)
+        
+
+        col1, col2= st.columns(2, gap='medium')
 
         with col1:
             st.markdown("### Raw Counts")
@@ -155,22 +173,7 @@ if len(st.session_state.final_cleaned_df) > 0:
         fig.tight_layout()
 
         st.pyplot(fig)
-        
-        st.markdown(f"### Statistical Significance of '{column}' Feature
-                    
-        Using the chi-squared test, we can test for the significance of this category. 
-        Here we use the scipy package for the calculation  
-                    ")
-        # statistical chi-squared test
-        # Performing chi-squared test of independence
-
-        with st.echo():
-            chi2, p_value, dof, expected = chi2_contingency(pivot_df)
-
-        st.write(f"Chi-squared statistic: {chi2}")
-        st.write(f"P-value:  {p_value}")
-        st.write(expected)
-
+    
     
 # ----------------------------------------------------------------------------------------------------------------
 # Continuous Display
@@ -178,6 +181,33 @@ if len(st.session_state.final_cleaned_df) > 0:
 
 
     else:
-        st.write(final_cleaned_df[column].describe())
+        # # Separate data for 'Is Fraud' = 0 and 'Is Fraud' = 1
+        # not_fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == 0]
+        not_fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == '0', column]
+
+        fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == '1', column]
+
+        # category_df = final_cleaned_df[[column, 'Is Fraud?']].groupby('Is Fraud?')
+        st.markdown("## Descriptive Statistics Summaries")
+        col1, col2= st.columns(2, gap='medium')
+
+        with col1:
+            st.markdown("### Not Fraud")
+            # print the table
+            st.write(not_fraud_df.describe())
+
+        with col2:
+            st.markdown("### Is Fraud")
+            # print the table
+            st.dataframe(fraud_df.describe())
+
+
+
+        fig, ax = plt.subplots()
+
+        ax.boxplot([not_fraud_df.values, fraud_df.values])
+        ax.
+
+        st.pyplot(fig)
 
 
