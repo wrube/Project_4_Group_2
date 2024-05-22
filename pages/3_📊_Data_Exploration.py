@@ -43,7 +43,7 @@ st.markdown(""" # Data Exploration
             """)
 
 cat_column = st.sidebar.radio("Data Type",
-                              options=["Continuous", "Categorical"],
+                              options=["Numerical", "Categorical"],
                               horizontal=True
                                 )
 st.sidebar.markdown("#### Choose your column")
@@ -176,7 +176,7 @@ Here we use the scipy package for the calculation
     
     
 # ----------------------------------------------------------------------------------------------------------------
-# Continuous Display
+# Numerical Display
 # ----------------------------------------------------------------------------------------------------------------
 
 
@@ -202,12 +202,32 @@ Here we use the scipy package for the calculation
             st.dataframe(fraud_df.describe())
 
 
+        # Plots
+        fig2, (ax1, ax2) = plt.subplots(1, 2, tight_layout=True,   )
 
-        fig, ax = plt.subplots()
+        # int_dtypes = ['int8', 'uint8', 'int16', 'uint16', 'int32']
+        if not_fraud_df.dtype in ['int8', 'uint8']:
+            n_bins=5
+        elif not_fraud_df.dtype in ['int16', 'uint16']:
+            n_bins=10
+        else:
+            n_bins = 50
 
-        ax.boxplot([not_fraud_df.values, fraud_df.values])
-        ax.
+        st.write(not_fraud_df.dtype)
+        # n_bins = 50
+        ax1.hist(not_fraud_df, bins=n_bins, label='Not Fraud', alpha=0.4, density=True)
+        ax1.hist(fraud_df, bins=n_bins, label='Fraud', alpha=0.4, density=True)
+        ax1.legend(shadow=True)
+        ax1.set_xlabel(f"{column}")
+        ax1.set_ylabel("Density")
+        ax1.set_title(f"Histogram Analysis Between Fraud and \n Not Fraud", fontsize=10)
 
-        st.pyplot(fig)
+        ax2.boxplot([not_fraud_df.values, fraud_df.values],
+                   labels=['Not Fraud', 'Fraud'])
+        ax2.set_ylabel(f"{column}")
+        ax2.set_title(f"Boxplot Comparison of Fraud and \n Not Fraud in {column}", fontsize=10)
+
+        fig2.set_figheight(3)
+        st.pyplot(fig2)
 
 
