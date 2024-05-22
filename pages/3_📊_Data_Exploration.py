@@ -26,7 +26,8 @@ if 'final_cleaned_df' not in st.session_state:
 # ----------------------------------------------------------------------------------------------------------------
 
 st.set_page_config(page_title="Data Exploration", 
-                   page_icon="🔢")
+                   page_icon="📊",
+                   layout='wide')
 
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -78,13 +79,6 @@ if len(st.session_state.final_cleaned_df) > 0:
 
     st.markdown(f"### Exploring the '{column}' Feature")
 
-
-    # st.write(final_cleaned_df[''])
-    
-    # print(column_count_df)
-    # st.write(column_count_df)
-
-
 # ----------------------------------------------------------------------------------------------------------------
 # Categorical Display
 # ----------------------------------------------------------------------------------------------------------------
@@ -100,29 +94,71 @@ if len(st.session_state.final_cleaned_df) > 0:
                                                 '1': 'Fraud'})
                                 .sort_values('Fraud', ascending=False)
                 )
-        
-        x_pos = np.arange(len(pivot_df.iloc[0:10, 1]))
-        x_categories = pivot_df.iloc[0:10, 1].index.values
-        
-        # print the table
-        st.dataframe(pivot_df)
+        relative_freq_df = pivot_df.copy()
+        relative_freq_df['Not Fraud'] = pivot_df['Not Fraud'] / pivot_df.sum(axis=1) * 100
+        relative_freq_df['Fraud'] = pivot_df['Fraud'] / pivot_df.sum(axis=1) * 100
+        relative_freq_df = relative_freq_df.sort_values('Fraud', ascending=False)
 
+        max_categories = 7
+
+        col1, col2 = st.columns(2, gap='medium')
+
+        with col1:
+            st.markdown("### Raw Counts")
+            # print the table
+            st.dataframe(pivot_df)
+
+        with col2:
+            st.markdown("### Percent Relative Frequency")
+            # print the table
+            st.dataframe(relative_freq_df)
+            
         # plot bar chart
-        fig, ax = plt.subplots()
-        ax.bar(x_pos, pivot_df.iloc[0:10, 1], mouseover=True)
-        ax.set_xlabel(f"{column}")
-        if len(x_pos) > 5:
-            ax.set_xticks(x_pos, x_categories, rotation = 60)
+        x_categories = pivot_df.iloc[0:max_categories, 1].index.values
+        x_pos = np.arange(len(pivot_df.iloc[0:max_categories, 1]))
+
+        fig, (ax1, ax2) = plt.subplots(1, 2,
+                                        width_ratios = [0.5, 0.5])
+        ax1.bar(x_pos, pivot_df.iloc[0:max_categories, 1], mouseover=True)
+        ax1.set_xlabel(f"{column}")
+        if len(x_pos) > 2:
+            ax1.set_xticks(x_pos, x_categories, rotation = 80)
         else:
-            ax.set_xticks(x_pos, x_categories)
-        ax.set_ylabel('Count')
-        ax.set_title(f"Top Fraudulent Transactions by {column}")
+            ax1.set_xticks(x_pos, x_categories)
+        
+        ax1.set_xticklabels(x_categories, fontsize=8)
+
+        ax1.set_ylabel('Count')
+        ax1.set_title(f"Top Fraudulent Transactions \n by {column}",
+                      fontsize=10)
+
+        # plot bar chart relative frequencies
+        x_rel_categories = relative_freq_df.iloc[0:max_categories, 1].index.values
+
+        ax2.bar(x_pos, relative_freq_df.iloc[0:max_categories, 1], mouseover=True)
+        ax2.set_xlabel(f"{column}")
+
+        if len(x_pos) > 2:
+            ax2.set_xticks(x_pos, x_rel_categories, rotation = 80)
+        else:
+            ax2.set_xticks(x_pos, x_rel_categories)
+
+        ax2.set_xticklabels(x_rel_categories, fontsize=8)
+        ax2.set_ylabel('Percent (%)', fontsize=8)
+        ax2.set_title(f"Top Relative Frequencies of Fraudulent \n Transactions by {column}",
+                      fontsize=10)
+
+        fig.set_figheight(3)
+        fig.tight_layout()
 
         st.pyplot(fig)
         
 
     
-    
+# ----------------------------------------------------------------------------------------------------------------
+# Continuous Display
+# ----------------------------------------------------------------------------------------------------------------
+
 
     else:
         st.write(final_cleaned_df[column].describe())

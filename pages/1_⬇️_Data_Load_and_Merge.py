@@ -42,9 +42,9 @@ if 'merged_df' not in st.session_state:
 # setup page
 # ----------------------------------------------------------------------------------------------------------------
 
-
 st.set_page_config(page_title="Raw Data from Kaggle", 
-                   page_icon="⬇️")
+                   page_icon="⬇️",
+                   layout='wide')
 
 # ----------------------------------------------------------------------------------------------------------------
 # page content
@@ -116,6 +116,8 @@ with tab_users:
     """
     )
     sample_users_path = Path.cwd() / 'data/sample_users.csv'
+
+    print(sample_users_path)
 
     sample_users_df = pd.read_csv(sample_users_path)
 
