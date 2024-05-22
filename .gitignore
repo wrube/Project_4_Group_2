@@ -4,6 +4,7 @@ data/sd254_cards.csv
 data/sd254_users.csv
 data/transactions_users_500.csv
 .DS_Store
+.gitattributes*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
