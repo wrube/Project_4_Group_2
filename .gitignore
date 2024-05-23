@@ -2,6 +2,8 @@ data/credit_card_transactions-ibm_v2.csv
 data/test_set.csv
 data/sd254_cards.csv
 data/sd254_users.csv
+data/final_merged_100users.csv
+data/transactions_users_100.csv
 data/
 .DS_Store
 
