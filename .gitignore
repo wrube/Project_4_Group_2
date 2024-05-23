@@ -7,6 +7,7 @@ data/transactions_users_500.csv
 data/transactions_users_5.csv
 data/transactions_users_100.csv
 data/final_merged_100users.csv
+data/transactions_users_100..csv
 .DS_Store
 
 # Byte-compiled / optimized / DLL files
