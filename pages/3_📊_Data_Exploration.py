@@ -44,7 +44,7 @@ st.set_page_config(page_title="Data Exploration",
 # page content
 # ----------------------------------------------------------------------------------------------------------------
 
-st.markdown(""" # Data Exploration
+st.markdown(""" # 📊 Data Exploration
 
             
 
@@ -86,11 +86,9 @@ column = st.sidebar.selectbox(dropdown_name, columns)
 
 if len(st.session_state.training_features_df) > 0:
 
-
     final_cleaned_df = pd.concat([st.session_state.training_features_df,
                                   st.session_state.training_target_df], axis=1)
     
-    # st.dataframe(final_cleaned_df)
 
     st.markdown(f"## Exploring the '{column}' Feature")
 
@@ -99,7 +97,7 @@ if len(st.session_state.training_features_df) > 0:
 # ----------------------------------------------------------------------------------------------------------------
 
     if cat_column == 'Categorical':
-        # st.write(final_cleaned_df[[column, 'Is Fraud?']].groupby(columns).value_counts())
+        # st.write(final_cleaned_df[[column, 'Is Fraud?']].groupby('Is Fraud?').value_counts())
         
         # Group by 'column' and Is Fraud, then count occurrences
         pivot_df = (final_cleaned_df.pivot_table(index=column, 
@@ -109,6 +107,7 @@ if len(st.session_state.training_features_df) > 0:
                                                 '1': 'Fraud'})
                                 .sort_values('Fraud', ascending=False)
                 )
+
         relative_freq_df = pivot_df.copy()
         relative_freq_df['Not Fraud'] = pivot_df['Not Fraud'] / pivot_df.sum(axis=1) * 100
         relative_freq_df['Fraud'] = pivot_df['Fraud'] / pivot_df.sum(axis=1) * 100

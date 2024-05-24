@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+# from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, ConfusionMatrixDisplay
 from imblearn.pipeline import Pipeline  
 from imblearn.under_sampling import RandomUnderSampler
 
@@ -29,11 +29,23 @@ from proj_modules import *
 # session state variables
 # ----------------------------------------------------------------------------------------------------------------
 
-if 'final_cleaned_df' not in st.session_state:
-    st.session_state.final_cleaned_df = pd.DataFrame()
+# if 'final_cleaned_df' not in st.session_state:
+#     st.session_state.final_cleaned_df = pd.DataFrame()
 
 if 'pre_trained_models' not in st.session_state:
     st.session_state.pre_trained_models = {}
+
+if 'training_features_df' not in st.session_state:
+    st.session_state.training_features_df = pd.DataFrame()
+
+if 'training_target_df' not in st.session_state:
+    st.session_state.training_target_df = pd.DataFrame()
+
+if 'test_features_df' not in st.session_state:
+    st.session_state.test_features_df = pd.DataFrame()
+
+if 'test_target_df' not in st.session_state:
+    st.session_state.test_target_df = pd.DataFrame()
 
 
 # ****************************************************************************************************************
@@ -43,7 +55,8 @@ if 'pre_trained_models' not in st.session_state:
 
 st.set_page_config(page_title="Modelling", 
                    page_icon="🧪",
-                   layout='wide')
+                   layout='wide',
+                   )
 
 # ----------------------------------------------------------------------------------------------------------------
 # sidebar setup
@@ -83,13 +96,74 @@ if page_option == "Load Pre-trained models":
 
 
 st.markdown("""
-# Modelling
+# 🧪 Modelling
             
-## Initial Modelling 
-            
- 
-            
+## Initial Modelling and Tests
+### What we tried
 
+### What we learnt        
+ 
 """
 )
+
+if len(st.session_state.training_features_df) > 0:
+
+    X_train = st.session_state.training_features_df
+    X_test = st.session_state.test_features_df
+    y_train = st.session_state.training_target_df.cat.codes
+    y_test = st.session_state.test_target_df.cat.codes
+
+    print(y_train.info())
+
+    st.markdown("""
+## Modelling Outputs
+                
+    """
+    )
+
+    # ----------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------------------------
+    # Set the Tabs
+    # ----------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------------------------------------
+
+
+
+    # set the tabs
+    tab_log_reg, tab_random_forest, tab_xgboost = st.tabs(["Logistic Regression Model", 
+                                                        "Random Forest Model", 
+                                                        "XGBoost Model"])
+    with tab_log_reg:
+        # ----------------------------------------------------------------------------------------------------------------
+        # Logistic Regression Results
+        # ----------------------------------------------------------------------------------------------------------------
+        model = 'log_reg'
+        if model in st.session_state.pre_trained_models:            
+
+            ml_model = st.session_state.pre_trained_models[model]
+
+            display_model_report(ml_model, X_test, y_test)
+
+    with tab_random_forest:
+        # ----------------------------------------------------------------------------------------------------------------
+        # Random Forest Results
+        # ----------------------------------------------------------------------------------------------------------------
+        model = 'random_forest'
+        if model in st.session_state.pre_trained_models:            
+
+            ml_model = st.session_state.pre_trained_models[model]
+
+            display_model_report(ml_model, X_test, y_test)
+
+    with tab_xgboost:
+        # ----------------------------------------------------------------------------------------------------------------
+        # Logistic Regression Results
+        # ----------------------------------------------------------------------------------------------------------------
+        model = 'XGBoost'
+        if model in st.session_state.pre_trained_models:            
+
+            ml_model = st.session_state.pre_trained_models[model]
+
+            display_model_report(ml_model, X_test, y_test)
+
 

@@ -122,7 +122,7 @@ if len(st.session_state.merged_df) > 0:
 
 
     st.markdown(""" 
-# Feature Engineering
+# 🔢 Feature Engineering
             
 Additional features can be extracted from the dataset which we deemed useful to the analysis:
             
@@ -228,10 +228,10 @@ Additional features can be extracted from the dataset which we deemed useful to 
     merged_df = merged_df.loc[merged_df['Amount'] > 0.0]
 
     # replace NaN Errors with No Error
-    merged_df['Errors?'] = merged_df['Errors?'].fillna('No Error')
+    merged_df.loc[:, 'Errors?'] = merged_df['Errors?'].fillna('No Error')
 
     # replace NaN in Merchant State with Online
-    merged_df['Merchant State'] = merged_df['Merchant State'].fillna('Online')
+    merged_df.loc[:, 'Merchant State'] = merged_df['Merchant State'].fillna('Online')
 
     
 

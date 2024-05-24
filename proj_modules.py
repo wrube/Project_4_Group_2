@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import joblib
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -9,7 +10,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, ConfusionMatrixDisplay
 from imblearn.pipeline import Pipeline  
 from imblearn.under_sampling import RandomUnderSampler
 
@@ -123,3 +124,40 @@ def load_pretrained_models(path_dict, session_variable):
 def load_model(model_path):
     # Load the model
     loaded_model = joblib.load(model_path)
+    return loaded_model
+
+
+def display_model_report(model, X_test, y_test):
+
+    # Predict using the loaded model
+    y_pred = model.predict(X_test)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+    # Evaluation
+        st.markdown(f"#### Classification Report:")
+
+        st.dataframe(
+            pd.DataFrame(classification_report(y_test, 
+                        y_pred, 
+                        target_names=['Not Fraud', 'Fraud'],
+                        output_dict=True)).transpose()
+                    )
+
+        st.markdown("#### Accuracy Score") 
+
+        st.markdown(f"###### {accuracy_score(y_test, y_pred):.3}")
+
+    with col2:
+        st.markdown("#### Confusion Matrix")                
+        cm = confusion_matrix(y_test, y_pred)
+
+        f, ax = plt.subplots(figsize=(2,2))
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+
+        disp.plot(ax=ax)
+        disp.im_.colorbar.remove()
+
+
+        st.pyplot(f)

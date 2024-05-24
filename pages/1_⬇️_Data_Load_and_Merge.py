@@ -313,7 +313,8 @@ with tab_transactions:
                             }
     
     transaction_dtypes = {'MCC': 'category',
-                          'Is Fraud?': 'category'}
+                          'Is Fraud?': 'category'
+                          }
     
     # load data
     transactions_df = load_csv_data(transaction_path,
