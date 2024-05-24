@@ -343,7 +343,7 @@ This is done in 2 steps as shown below:
 """
 )
 
-merge_button = st.button("Merge the dataframes",
+merge_button = st.sidebar.button("Merge the dataframes",
                          disabled = (len(st.session_state.users_df) == 0) |
                                     (len(st.session_state.cards_df) == 0) |
                                      (len(st.session_state.transactions_df) == 0)
@@ -358,12 +358,20 @@ if merge_button:
                                        how='inner', 
                                        left_on=['User', 'Card'], 
                                        right_on=['User', 'CARD INDEX'])
+        st.sidebar.write('Merge Complete')
     
     # save to session state
     st.session_state.merged_df = merged_df
 
 
 if len(st.session_state.merged_df) > 0:
-    st.dataframe(st.session_state.merged_df)
+    merged_df = st.session_state.merged_df
+    st.dataframe(merged_df)
+
+
 else:
-    st.markdown("### FILES NOT YET MERGED - PLEASE MERGE")
+    st.sidebar.markdown("#### FILES NOT YET MERGED - PLEASE MERGE")
+
+
+
+    

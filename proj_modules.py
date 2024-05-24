@@ -1,6 +1,28 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import joblib
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.compose import ColumnTransformer
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from imblearn.pipeline import Pipeline  
+from imblearn.under_sampling import RandomUnderSampler
+
+# ----------------------------------------------------------------------------------------------------------------
+# session state variables
+# ----------------------------------------------------------------------------------------------------------------
+
+# if 'final_cleaned_df' not in st.session_state:
+#     st.session_state.final_cleaned_df = pd.DataFrame()
+
+# if 'pre_trained_models' not in st.session_state:
+#     st.session_state.pre_trained_models = {}
+
 
 #----------------------------------------------------------
 # Functions for data import
@@ -85,4 +107,19 @@ def load_csv_data(file, columns, _converters, _dtypes):
     return df
 
 
-# def 
+def load_pretrained_models(path_dict, session_variable):
+    print("Hi", type(session_variable))
+    try:
+        for model, path in path_dict.items():
+            # Load the model
+            loaded_model = load_model(path)
+            print("Model loaded successfully")
+            session_variable.update({model: loaded_model})
+        st.sidebar.write("Models loaded successfully!")
+    except Exception as e:
+        st.sidebar.write(f"Error: Check models or model paths for {model}. {e}")
+
+@st.cache_resource
+def load_model(model_path):
+    # Load the model
+    loaded_model = joblib.load(model_path)

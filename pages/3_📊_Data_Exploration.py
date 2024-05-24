@@ -18,9 +18,17 @@ from proj_modules import *
 # session state variables
 # ----------------------------------------------------------------------------------------------------------------
 
-if 'final_cleaned_df' not in st.session_state:
-    st.session_state.final_cleaned_df = pd.DataFrame()
+# if 'final_cleaned_df' not in st.session_state:
+#     st.session_state.final_cleaned_df = pd.DataFrame()
 
+# if 'nearly_final_df' not in st.session_state:
+#     st.session_state.nearly_final_df = pd.DataFrame()
+
+if 'training_features_df' not in st.session_state:
+    st.session_state.training_features_df = pd.DataFrame()
+
+if 'training_target_df' not in st.session_state:
+    st.session_state.training_target_df = pd.DataFrame()
 
 # ****************************************************************************************************************
 # ----------------------------------------------------------------------------------------------------------------
@@ -76,8 +84,13 @@ column = st.sidebar.selectbox(dropdown_name, columns)
 
 
 
-if len(st.session_state.final_cleaned_df) > 0:
-    final_cleaned_df = st.session_state.final_cleaned_df
+if len(st.session_state.training_features_df) > 0:
+
+
+    final_cleaned_df = pd.concat([st.session_state.training_features_df,
+                                  st.session_state.training_target_df], axis=1)
+    
+    # st.dataframe(final_cleaned_df)
 
     st.markdown(f"## Exploring the '{column}' Feature")
 

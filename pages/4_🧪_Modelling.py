@@ -6,10 +6,11 @@ import numpy as np
 from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
-import joblib
+
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
@@ -17,7 +18,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from imblearn.pipeline import Pipeline  
 from imblearn.under_sampling import RandomUnderSampler
-from xgboost import XGBClassifier
+
 
 #import modules
 # sys.path.append(Path.cwd().parent)
@@ -69,19 +70,13 @@ if page_option == "Load Pre-trained models":
                    'random_forest': random_forest_path, 
                    'XGBoost': xgboost_model_path}
 
-    st.sidebar.button("Load Models",
+    load_models_button = st.sidebar.button("Load Models",
                       )
-
-    try:
-        for model, path in model_paths.items():
-            # Load the model
-            loaded_model = joblib.load(path)
-            print("Model loaded successfully")
-            st.session_state.pre_trained_models[model] = loaded_model
-        st.sidebar.write("Models loaded successfully!")
-    except Exception as e:
-        st.sidebar.write(f"Error: Check models or model paths for {model}. {e}")
     
+    if load_models_button:
+        load_pretrained_models(model_paths, st.session_state['pre_trained_models'])
+
+
 # ----------------------------------------------------------------------------------------------------------------
 # Main Page
 # ----------------------------------------------------------------------------------------------------------------

@@ -16,8 +16,27 @@ from proj_modules import *
 # session state variables
 # ----------------------------------------------------------------------------------------------------------------
 
-if 'final_cleaned_df' not in st.session_state:
-    st.session_state.final_cleaned_df = pd.DataFrame()
+# if 'final_cleaned_df' not in st.session_state:
+#     st.session_state.final_cleaned_df = pd.DataFrame()
+
+# dataframe cleaned except has a User column
+if 'nearly_final_df' not in st.session_state:
+    st.session_state.nearly_final_df = pd.DataFrame()
+
+if 'merged_df' not in st.session_state:
+    st.session_state.merged_df = pd.DataFrame()
+
+if 'training_features_df' not in st.session_state:
+    st.session_state.training_features_df = pd.DataFrame()
+
+if 'training_target_df' not in st.session_state:
+    st.session_state.training_target_df = pd.DataFrame()
+
+if 'test_features_df' not in st.session_state:
+    st.session_state.test_features_df = pd.DataFrame()
+
+if 'test_target_df' not in st.session_state:
+    st.session_state.test_target_df = pd.DataFrame()
 
 
 # ****************************************************************************************************************
@@ -28,11 +47,81 @@ st.set_page_config(page_title="Feature Engineering",
                    page_icon="🔢",
                    layout='wide')
 
+if len(st.session_state.merged_df) > 0:
+
+    # alias for ession_state.merged_df
+    merged_df = st.session_state.merged_df
+
+
+
+
+# ----------------------------------------------------------------------------------------------------------------
+# Page Options On Sidebar
+# ----------------------------------------------------------------------------------------------------------------
+
+    st.sidebar.markdown("## Feature Engineering Output Options")
+    n_users = merged_df['User'].nunique()
+    st.sidebar.markdown(f"There are **{n_users}** unique users in this dataset")
+
+# ----------------------------------------------------------------------------------------------------------------
+# Use whole dataframe for Training and Test?
+# ----------------------------------------------------------------------------------------------------------------
+    st.sidebar.markdown("#### Dataset Options For Training and Test Sets")
+
+    
+    n_users_for_train_test = st.sidebar.select_slider("How many users for Training and Test Set?", 
+                             options=np.arange(0, n_users, 1),
+                             value=n_users-1
+                            )
+    
+    testing_fraction = st.sidebar.select_slider("What fraction of the dataset is for Testing",
+                                                options=np.arange(0.05, 0.61, 0.01),
+                                                value=0.2,
+                                                format_func=lambda x: f"{x:.2f}")
+
+
+# ----------------------------------------------------------------------------------------------------------------
+# Saving Dataframe option
+# ----------------------------------------------------------------------------------------------------------------
+
+
+    save_cleaned_df = st.sidebar.toggle("Save Cleaned Dataframe?", value=False)
+
+    if save_cleaned_df:
+
+        st.sidebar.markdown("### Option to Save Cleaned Dataframe")
+
+
+
+        first_user, last_user = st.sidebar.slider("Range of Users to Save", 
+                                                min_value=0,
+                                                max_value=n_users - 1,
+                                                value=(0, n_users - 1)
+                                                )
+        if len(st.session_state.nearly_final_df) > 0:
+            nearly_final_df = st.session_state.nearly_final_df
+            trimmed_df = nearly_final_df.loc[(nearly_final_df['User'] >= first_user) & 
+                                             (nearly_final_df['User'] < last_user)].drop('User', axis=1)
+            
+            save_name = st.sidebar.text_input("Dataframe save name", 
+                                              value=f"cleansed_dataset_users_{first_user}-{last_user}.csv")
+            
+            save_button = st.sidebar.button("Save to csv (in 'data' directory)")
+            if save_button:
+                trimmed_df.to_csv(Path.cwd() / "data" / save_name, index=False)
+
+# ----------------------------------------------------------------------------------------------------------------
+# Splitting off Training and Test Data
+# ----------------------------------------------------------------------------------------------------------------
+
+
+   
 # ----------------------------------------------------------------------------------------------------------------
 # page content
 # ----------------------------------------------------------------------------------------------------------------
 
-st.markdown(""" 
+
+    st.markdown(""" 
 # Feature Engineering
             
 Additional features can be extracted from the dataset which we deemed useful to the analysis:
@@ -51,8 +140,7 @@ Additional features can be extracted from the dataset which we deemed useful to 
 # ----------------------------------------------------------------------------------------------------------------
 
 
-if len(st.session_state.merged_df) > 0:
-    merged_df = st.session_state.merged_df
+
     with st.echo():
         # 
 
@@ -133,6 +221,21 @@ if len(st.session_state.merged_df) > 0:
         merged_df.loc[distance_candidates, 'distances'] = distances
         merged_df.loc[international_filters, 'distances'] = max_distance
 
+
+
+    # Additional filtering
+    # Filter out negative amounts
+    merged_df = merged_df.loc[merged_df['Amount'] > 0.0]
+
+    # replace NaN Errors with No Error
+    merged_df['Errors?'] = merged_df['Errors?'].fillna('No Error')
+
+    # replace NaN in Merchant State with Online
+    merged_df['Merchant State'] = merged_df['Merchant State'].fillna('Online')
+
+    
+
+
 # ----------------------------------------------------------------------------------------------------------------
 # Dropping columns and final clean
 # ----------------------------------------------------------------------------------------------------------------
@@ -146,7 +249,6 @@ if len(st.session_state.merged_df) > 0:
     )
     
     columns_to_drop = ['Card',
-                   'User',
                    'Year',
                    'Month',
                    'Birth Year',
@@ -162,24 +264,40 @@ if len(st.session_state.merged_df) > 0:
                    'Card on Dark Web'
                    ]
     
-
     # drop the columns
     merged_and_drop_df = merged_df.drop(columns=columns_to_drop, axis=1)
 
-    # Filter out negative amounts
-    merged_and_drop_df = merged_and_drop_df.loc[merged_and_drop_df['Amount'] > 0.0]
+    st.session_state.nearly_final_df = merged_and_drop_df.loc[merged_and_drop_df['User'] 
+                                                              < n_users_for_train_test].reset_index()
 
-    # replace NaN Errors with No Error
-    merged_and_drop_df['Errors?'] = merged_and_drop_df['Errors?'].fillna('No Error')
 
-    # replace NaN in Merchant State with Online
-    merged_and_drop_df['Merchant State'] = merged_and_drop_df['Merchant State'].fillna('Online')
 
-    st.session_state.final_cleaned_df = merged_and_drop_df
+
+
+# ----------------------------------------------------------------------------------------------------------------
+# Saving Training and Test
+# ----------------------------------------------------------------------------------------------------------------
+    # Define the target variable
+    target = 'Is Fraud?'
+    
+    # Split the data into training and testing sets
+    X = merged_and_drop_df.drop(columns=[target, 'User'], axis=1)
+    y = merged_and_drop_df[target]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testing_fraction, random_state=42)
+
+
+    # final_df = merged_and_drop_df.d
+    st.session_state.training_features_df = X_train
+    st.session_state.training_target_df = y_train
+    st.session_state.test_features_df = X_test
+    st.session_state.test_target_df = y_test
+    
 
 st.markdown("")  
-if len(st.session_state.final_cleaned_df) > 0:
-    st.dataframe(st.session_state.final_cleaned_df)
+if len(st.session_state.training_features_df) > 0:
+    st.dataframe(st.session_state.training_features_df)
+
+
 
 
     
