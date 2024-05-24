@@ -114,12 +114,12 @@ Here we use the scipy package for the calculation
         # Performing chi-squared test of independence
 
         with st.echo():
-            chi2, p_value, dof, expected = chi2_contingency(pivot_df)
+            chi2_test = chi2_contingency(pivot_df)
 
-        st.write(f"Chi-squared statistic: {chi2:.2f}")
-        st.write(f"P-value:  {p_value:.2f}")
+        st.write(f"Chi-squared statistic: {chi2_test.statistic:.2f}")
+        st.write(f"P-value:  {chi2_test.pvalue:.8f}")
 
-        expected_df = pd.DataFrame(expected)
+        # expected_df = pd.DataFrame(expected)
         
 
         col1, col2= st.columns(2, gap='medium')
@@ -218,7 +218,7 @@ Here we use the scipy package for the calculation
                                    equal_var=False)
 
             st.write(f"t-statistic: {t_test.statistic:.2f}")
-            st.write(f"P-value:  {t_test.pvalue:.2f}")
+            st.write(f"P-value:  {t_test.pvalue:.4f}")
 
         # Plots
         fig2, (ax1, ax2) = plt.subplots(1, 2, tight_layout=True,   )
@@ -248,3 +248,5 @@ Here we use the scipy package for the calculation
         st.pyplot(fig2)
 
 
+else:
+    st.markdown("### DataFrame not yet ready: Please complete the previous steps")

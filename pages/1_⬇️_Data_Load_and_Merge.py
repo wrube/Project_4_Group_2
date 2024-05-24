@@ -117,8 +117,6 @@ with tab_users:
     )
     sample_users_path = Path.cwd() / 'data/sample_users.csv'
 
-    print(sample_users_path)
-
     sample_users_df = pd.read_csv(sample_users_path)
 
     st.dataframe(sample_users_df.head())
@@ -365,5 +363,7 @@ if merge_button:
     st.session_state.merged_df = merged_df
 
 
-  
-st.dataframe(st.session_state.merged_df)
+if len(st.session_state.merged_df) > 0:
+    st.dataframe(st.session_state.merged_df)
+else:
+    st.markdown("### FILES NOT YET MERGED - PLEASE MERGE")
