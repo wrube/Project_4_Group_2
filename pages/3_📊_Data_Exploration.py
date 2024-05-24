@@ -1,7 +1,5 @@
 # import modules
-import sys
 import streamlit as st
-import time
 import numpy as np
 from pathlib import Path
 import pandas as pd
@@ -17,12 +15,6 @@ from proj_modules import *
 # ----------------------------------------------------------------------------------------------------------------
 # session state variables
 # ----------------------------------------------------------------------------------------------------------------
-
-# if 'final_cleaned_df' not in st.session_state:
-#     st.session_state.final_cleaned_df = pd.DataFrame()
-
-# if 'nearly_final_df' not in st.session_state:
-#     st.session_state.nearly_final_df = pd.DataFrame()
 
 if 'training_features_df' not in st.session_state:
     st.session_state.training_features_df = pd.DataFrame()
@@ -80,8 +72,6 @@ else:
 
 dropdown_name = f"{cat_column} Columns"
 column = st.sidebar.selectbox(dropdown_name, columns)
-
-
 
 
 if len(st.session_state.training_features_df) > 0:

@@ -132,11 +132,11 @@ def display_model_report(model, X_test, y_test):
     # Predict using the loaded model
     y_pred = model.predict(X_test)
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns([0.4, 0.3, 0.3])
 
     with col1:
     # Evaluation
-        st.markdown(f"#### Classification Report:")
+        col1.subheader("Classification Report")
 
         st.dataframe(
             pd.DataFrame(classification_report(y_test, 
@@ -150,7 +150,7 @@ def display_model_report(model, X_test, y_test):
         st.markdown(f"###### {accuracy_score(y_test, y_pred):.3}")
 
     with col2:
-        st.markdown("#### Confusion Matrix")                
+        col2.subheader("Confusion Matrix")                
         cm = confusion_matrix(y_test, y_pred)
 
         f, ax = plt.subplots(figsize=(2,2))

@@ -281,8 +281,8 @@ Additional features can be extracted from the dataset which we deemed useful to 
     target = 'Is Fraud?'
     
     # Split the data into training and testing sets
-    X = merged_and_drop_df.drop(columns=[target, 'User'], axis=1)
-    y = merged_and_drop_df[target]
+    X = st.session_state.nearly_final_df.drop(columns=target, axis=1)
+    y = st.session_state.nearly_final_df[target]
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testing_fraction, random_state=42)
 
 
