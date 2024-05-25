@@ -44,13 +44,13 @@ designed to simulate fraudulent transactions. This raw data was then subjected t
 including the removal of irrelevant columns, handling missing values, and standardizing data formats. 
 Through meticulous data engineering processes,we ensured that the dataset was streamlined and optimized for machine learning analysis.
             
-More detailed information about this step is available in the `Data Load and Merge Page`.
+More detailed information about this step is available in the `Data Load and Merge Page`- Streamlit.
             
 ### Further Data Engineering 🖥️
 Following the cleaning phase, we merged relevant datasets to create a comprehensive dataset that encapsulates various features
 and attributes related to fraudulent transactions. This merging process involved aligning data based on common identifiers
 and ensuring data consistency across different sources.         
-More detailed information about this step is available in the `Data Engineering Page`.
+More detailed information about this step is available in the `Data Engineering Page` - Streamlit.
 
 ![GIF](images/stat.gif)
 
@@ -62,7 +62,7 @@ data analysis (EDA) to unearth insights into the distribution and patterns withi
 correlation analysis, chi-squared statistics, and visualization techniques, we scrutinized the data to identify key features and trends that could
 serve as indicators of fraudulent activities. To visually represent our findings and facilitate comprehension, we employed a range of visualization techniques, including bar graphs, histograms, and heatmaps.
 
-More detailed information about this step is available in the `Data Exploration Page`.
+More detailed information about this step is available in the `Data Exploration Page`- Streamlit.
                        
 ### Further Machine Learning and Model Prediction 🧠
 With the prepared dataset, we then embarked on the development of machine learning models for fraud detection. 
@@ -77,7 +77,7 @@ recall, and F1-score. This rigorous evaluation empowered us to pinpoint the most
 Employing a holistic approach to both model development and evaluation, we successfully deployed resilient fraud detection systems. These systems boast a high level of accuracy
 and reliability, effectively identifying and thwarting fraudulent activities with precision and confidence.
             
-More detailed information about this step is available in the `Modelling Page`.
+More detailed information about this step is available in the `Modelling Page`- Streamlit.
 
 Overall, the project encompassed data cleaning, merging, exploratory analysis, and machine learning model development,
 all aimed at building an effective fraud detection system.  
