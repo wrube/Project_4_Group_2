@@ -1,3 +1,10 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:db9d2abdf63ef964b81e2852690c4891aaf4e78a974b70125ab334aadcae8fb7
-size 1225
+Person,Current Age,Retirement Age,Birth Year,Birth Month,Gender,Address,Apartment,City,State,Zipcode,Latitude,Longitude,Per Capita Income - Zipcode,Yearly Income - Person,Total Debt,FICO Score,Num Credit Cards
+Hazel Robinson,53,66,1966,11,Female,462 Rose Lane,,La Verne,CA,91750,34.15,-117.76,$29278,$59696,$127613,787,5
+Sasha Sadr,53,68,1966,12,Female,3606 Federal Boulevard,,Little Neck,NY,11363,40.76,-73.74,$37891,$77254,$191349,701,5
+Saanvi Lee,81,67,1938,11,Female,766 Third Drive,,West Covina,CA,91792,34.02,-117.89,$22681,$33483,$196,698,5
+Everlee Clark,63,63,1957,1,Female,3 Madison Street,,New York,NY,10069,40.71,-73.99,$163145,$249925,$202328,722,4
+Kyle Peterson,43,70,1976,9,Male,9620 Valley Stream Drive,,San Francisco,CA,94117,37.76,-122.44,$53797,$109687,$183855,675,1
+Aldo Walker,42,70,1977,10,Male,58 Birch Lane,6,Davenport,IA,52803,41.55,-90.60,$20599,$41997,$0,704,3
+Katalina Lewis,36,67,1983,12,Female,5695 Fifth Street,1,Louisville,KY,40299,38.22,-85.74,$25258,$51500,$102286,672,3
+Ryland Howard,26,67,1993,12,Male,1941 Ninth Street,10,Portland,OR,97214,45.51,-122.64,$26790,$54623,$114711,728,1
+Kenya Cooper,81,66,1938,7,Female,11 Spruce Avenue,,Telford,PA,18969,40.32,-75.32,$26273,$42509,$2895,755,5
