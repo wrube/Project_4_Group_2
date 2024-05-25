@@ -253,3 +253,134 @@ def optimise_model(X_train, y_train, _model, _preprocessor, _param_grid, _ss_mod
     if (save_model_button) & (ss_key in _ss_model.keys()):
         joblib.dump(_ss_model[ss_key], Path.cwd() / 'models' / save_name)
     
+
+
+# Utility Functions
+def load_data(file_path):
+    """Load the dataset from a CSV file."""
+    try:
+        df = pd.read_csv(file_path)
+    except Exception as e:
+        st.error(f"Error loading data: {e}")
+        return None
+    return df
+
+def select_row(df, index):
+    """Select a specific row from the dataframe by index."""
+    try:
+        selected_row = df.iloc[[index]]
+    except IndexError:
+        st.error(f"Index {index} is out of bounds for the DataFrame.")
+        return None
+    return selected_row
+
+def predict_row(loaded_model, row):
+    """Predict the class and probability for a specific row."""
+    try:
+        x = row.drop(columns=["Is Fraud?"])
+        prediction = loaded_model.predict(x)
+        prediction_proba = loaded_model.predict_proba(x)
+        pred_dict = x.iloc[0].to_dict()
+    except Exception as e:
+        st.error(f"Error during prediction: {e}")
+        return None, None, None
+    return pred_dict, prediction[0], prediction_proba[0]
+
+def display_prediction(pred_dict, prediction, prediction_proba):
+    """Display the prediction results."""
+    st.subheader("Prediction Result")
+    st.markdown(f"**Prediction:** {'Fraudulent' if prediction == 1 else 'Legitimate'}")
+    st.markdown(f"**Prediction Probabilities:** {prediction_proba}")
+    
+    st.markdown("**Details of the selected row:**")
+    pred_df = pd.DataFrame(pred_dict.items(), columns=["Feature", "Value"])
+    st.table(pred_df)
+
+def evaluate_model(loaded_model, df):
+    """Evaluate the model and display performance metrics."""
+    try:
+        X = df.drop(columns=["Is Fraud?"])
+        y = df["Is Fraud?"]
+        y_pred = loaded_model.predict(X)
+        y_pred_proba = loaded_model.predict_proba(X)[:, 1]
+
+        accuracy = accuracy_score(y, y_pred)
+        
+        # Convert classification report to DataFrame
+        report_dict = classification_report(y, y_pred, output_dict=True)
+        report_df = pd.DataFrame(report_dict).transpose()
+        
+        cm = confusion_matrix(y, y_pred)
+
+        st.write("**Accuracy:**", accuracy)
+        st.write("**Classification Report:**")
+        st.table(report_df)
+
+        plt.figure(figsize=(10, 7))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=[0, 1], yticklabels=[0, 1])
+        plt.xlabel('Predicted')
+        plt.ylabel('Actual')
+        plt.title('Confusion Matrix')
+        st.pyplot(plt)
+    except Exception as e:
+        st.error(f"Error during model evaluation: {e}")
+
+def get_feature_names(column_transformer):
+    """Get feature names from all transformers in the ColumnTransformer."""
+    output_features = []
+    for name, transformer, features in column_transformer.transformers_:
+        if transformer == 'drop':
+            continue
+        if hasattr(transformer, 'get_feature_names_out'):
+            output_features.extend(transformer.get_feature_names_out(features))
+        elif hasattr(transformer, 'get_feature_names'):
+            output_features.extend(transformer.get_feature_names())
+        else:
+            output_features.extend(features)
+    return output_features
+
+def get_feature_names(column_transformer):
+    """Get feature names from all transformers in the ColumnTransformer."""
+    output_features = []
+    for name, transformer, features in column_transformer.transformers_:
+        if transformer == 'drop':
+            continue
+        if hasattr(transformer, 'get_feature_names_out'):
+            output_features.extend(transformer.get_feature_names_out(features))
+        elif hasattr(transformer, 'get_feature_names'):
+            output_features.extend(transformer.get_feature_names())
+        else:
+            output_features.extend(features)
+    return output_features
+
+def display_feature_importance(loaded_model, df, top_n=20):
+    """Display the top N feature importances of the model."""
+    try:
+        if hasattr(loaded_model, 'named_steps'):
+            model = loaded_model.named_steps['classifier']
+            preprocessor = loaded_model.named_steps['preprocessor']
+        else:
+            model = loaded_model
+            preprocessor = None
+
+        if preprocessor is not None:
+            preprocessor.fit(df.drop(columns=["Is Fraud?"]))
+            feature_names = get_feature_names(preprocessor)
+        else:
+            feature_names = [f"Feature {i}" for i in range(len(model.feature_importances_))]
+
+        if hasattr(model, 'feature_importances_'):
+            feature_importances = model.feature_importances_
+            sorted_idx = np.argsort(feature_importances)[-top_n:]
+            sorted_idx = sorted_idx[::-1]  # Reverse to descending order
+
+            fig, ax = plt.subplots(figsize=(10, 7))
+            sns.barplot(x=feature_importances[sorted_idx], y=[feature_names[i] for i in sorted_idx], palette="viridis", ax=ax)
+            ax.set_xlabel('Feature Importance')
+            ax.set_ylabel('Features')
+            ax.set_title(f'Top {top_n} Feature Importances')
+            st.pyplot(fig)
+        else:
+            st.error("The model does not have feature_importances_ attribute.")
+    except Exception as e:
+        st.error(f"Error displaying feature importances: {e}")
