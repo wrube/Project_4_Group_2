@@ -41,9 +41,6 @@ if 'test_target_df' not in st.session_state:
 if 'n_users_for_train_test' not in st.session_state:
     st.session_state.n_users_for_train_test = 0
 
-# if 'st.session_state.n_users' not in st.session_state:
-#     st.session_state.n_users = np.
-
 
 # Callback function to update session state
 def update_slider_value():
