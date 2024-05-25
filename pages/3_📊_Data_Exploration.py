@@ -93,11 +93,10 @@ if len(st.session_state.training_features_df) > 0:
         pivot_df = (final_cleaned_df.pivot_table(index=column, 
                                               columns='Is Fraud?', 
                                               aggfunc='size')
-                                .rename(columns={'0': 'Not Fraud',
-                                                '1': 'Fraud'})
+                                .rename(columns={'No': 'Not Fraud',
+                                                'Yes': 'Fraud'})
                                 .sort_values('Fraud', ascending=False)
                 )
-
         relative_freq_df = pivot_df.copy()
         relative_freq_df['Not Fraud'] = pivot_df['Not Fraud'] / pivot_df.sum(axis=1) * 100
         relative_freq_df['Fraud'] = pivot_df['Fraud'] / pivot_df.sum(axis=1) * 100
@@ -185,9 +184,9 @@ Here we use the scipy package for the calculation
     else:
         # # Separate data for 'Is Fraud' = 0 and 'Is Fraud' = 1
         # not_fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == 0]
-        not_fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == '0', column]
+        not_fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == 'No', column]
 
-        fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == '1', column]
+        fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == 'Yes', column]
 
         # category_df = final_cleaned_df[[column, 'Is Fraud?']].groupby('Is Fraud?')
         st.markdown("## Descriptive Statistics Summaries")
@@ -249,6 +248,8 @@ Here we use the scipy package for the calculation
         fig2.set_figheight(3)
         st.pyplot(fig2)
 
-
 else:
     st.markdown("### DataFrame not yet ready: Please complete the previous steps")
+
+
+    
