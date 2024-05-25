@@ -242,7 +242,6 @@ def display_summary():
     If the model indicates that the 'transaction amount' is the most important feature, it means that the transaction amount plays a significant role in determining whether a transaction is fraudulent or not. This insight can be valuable for developing targeted fraud detection strategies.
     """)
 
-# Main Function
 def main():
     st.title("🚨 Fraud Detection Dashboard")
 
@@ -274,63 +273,15 @@ def main():
         df = load_data('data/transactions_users_100.csv')
         st.sidebar.write("Using default dataset for analysis.")
 
-    option = st.sidebar.selectbox("Choose an action", ["Make a prediction", "Evaluate the model", "Display feature importance", "Summary of Metrics", "Exit"])
+    option = st.sidebar.selectbox("Choose an action", ["Make a prediction", "Evaluate the model", "Display feature importance", "Summary of Metrics", "Predict and Display Fraudulent Transactions", "Exit"])
 
     if option == "Make a prediction":
-        st.markdown("**Enter individual parameters for prediction (Optional):**")
-        amount = st.number_input("Amount", value=100.0)
-        use_chip = st.selectbox("Use Chip", options=["Swipe Transaction", "Chip Transaction", "Online Transaction"])
-        merchant_state = st.text_input("Merchant State", value="CA")
-        errors = st.selectbox("Errors?", options=["No Error", "Error Type 1", "Error Type 2"])
-        per_capita_income_zip = st.number_input("Per Capita Income - Zipcode", value=50000.0)
-        yearly_income_person = st.number_input("Yearly Income - Person", value=60000.0)
-        total_debt = st.number_input("Total Debt", value=10000.0)
-        fico_score = st.number_input("FICO Score", value=700)
-        num_credit_cards = st.number_input("Num Credit Cards", value=3)
-        has_chip = st.selectbox("Has Chip", options=[0, 1])
-        cards_issued = st.number_input("Cards Issued", value=1)
-        international = st.selectbox("International", options=[0, 1])
-        online = st.selectbox("Online", options=[0, 1])
-        age_at_transaction = st.number_input("Age_at_transaction", value=30)
-        income_to_debt = st.number_input("Income_to_debt", value=6.0)
-        day_of_week = st.selectbox("Day of Week", options=[0, 1, 2, 3, 4, 5, 6])
-        time_of_day = st.selectbox("Time of Day", options=["Morning", "Afternoon", "Evening", "Night"])
-        distances = st.number_input("Distances", value=0.0)
-
-        input_data = pd.DataFrame({
-            'Amount': [amount],
-            'Use Chip': [use_chip],
-            'Merchant State': [merchant_state],
-            'Errors?': [errors],
-            'Per Capita Income - Zipcode': [per_capita_income_zip],
-            'Yearly Income - Person': [yearly_income_person],
-            'Total Debt': [total_debt],
-            'FICO Score': [fico_score],
-            'Num Credit Cards': [num_credit_cards],
-            'Has Chip': [has_chip],
-            'Cards Issued': [cards_issued],
-            'International': [international],
-            'Online': [online],
-            'Age_at_transaction': [age_at_transaction],
-            'income_to_debt': [income_to_debt],
-            'day_of_week': [day_of_week],
-            'time_of_day': [time_of_day],
-            'distances': [distances]
-        })
-
-        if st.button("Predict"):
-            pred_dict, prediction, prediction_proba = predict_row(loaded_model, input_data)
-            if pred_dict is not None:
-                display_prediction(pred_dict, prediction, prediction_proba)
-        
-        st.markdown("**Or enter the row index for prediction:**")
-        row_index = st.number_input(f"Enter the row index (0 to {len(df) - 1}) for prediction:", min_value=0, max_value=len(df) - 1, step=1)
+        row_index = st.sidebar.number_input(f"Enter the row index (0 to {len(df) - 1}) for prediction:", min_value=0, max_value=len(df) - 1, step=1)
         row = select_row(df, row_index)
-        if row is not None and st.button("Predict from Row Index"):
+        if row is not None:
             pred_dict, prediction, prediction_proba = predict_row(loaded_model, row)
             if pred_dict is not None:
                 display_prediction(pred_dict, prediction, prediction_proba)
-
         st.markdown("This page allows you to make a prediction on a specific transaction by entering the row index or inputting values manually. You can view the prediction result and the details of the selected row.")
         with st.expander("Learn more"):
             st.markdown("""
@@ -363,6 +314,19 @@ def main():
 
     elif option == "Summary of Metrics":
         display_summary()
+
+    elif option == "Predict and Display Fraudulent Transactions":
+        try:
+            X = df.drop(columns=["Is Fraud?"])
+            y_pred = loaded_model.predict(X)
+            df['Prediction'] = y_pred
+            fraudulent_transactions = df[df['Prediction'] == 1]
+
+            st.subheader("Fraudulent Transactions")
+            st.write(f"Total fraudulent transactions detected: {len(fraudulent_transactions)}")
+            st.dataframe(fraudulent_transactions)
+        except Exception as e:
+            st.error(f"Error predicting fraudulent transactions: {e}")
 
     elif option == "Exit":
         st.markdown("You have chosen to exit the application. Thank you for using the model evaluation and prediction tool.")
