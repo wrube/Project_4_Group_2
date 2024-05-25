@@ -19,7 +19,6 @@ from sklearn.compose import ColumnTransformer
 from imblearn.pipeline import Pipeline  
 from imblearn.under_sampling import RandomUnderSampler
 
-import warnings
 
 
 #import modules
@@ -34,8 +33,8 @@ from proj_modules import *
 # if 'final_cleaned_df' not in st.session_state:
 #     st.session_state.final_cleaned_df = pd.DataFrame()
 
-if 'pre_trained_models' not in st.session_state:
-    st.session_state.pre_trained_models = {}
+if 'trained_models' not in st.session_state:
+    st.session_state.trained_models = {}
 
 if 'training_features_df' not in st.session_state:
     st.session_state.training_features_df = pd.DataFrame()
@@ -89,170 +88,219 @@ if page_option == "Load Pre-trained models":
                       )
     
     if load_models_button:
-        load_pretrained_models(model_paths, st.session_state['pre_trained_models'])
+        load_pretrained_models(model_paths, st.session_state['trained_models'])
+
 
 
 # ----------------------------------------------------------------------------------------------------------------
 # Main Page
 # ----------------------------------------------------------------------------------------------------------------
 
+intro_tab, analysis_tab = st.tabs(["Initial Modelling and Tests",
+                                   "Model Build and Analysis"])
 
-st.markdown("""
-# 🧪 Modelling
+with intro_tab:
+    st.markdown("""
+    # 🧪 Modelling
+                
+    ## Initial Modelling and Tests
+    ### What we tried
+
+    ### What we learnt        
+    
+    """
+    )
+
+with analysis_tab:
+
+
+
+    if len(st.session_state.training_features_df) > 0:
+
+        X_train = st.session_state.training_features_df
+        X_test = st.session_state.test_features_df
+        y_train = st.session_state.training_target_df.cat.codes
+        y_test = st.session_state.test_target_df.cat.codes
+
+
+        if page_option == "Create Your Own Model":
+            st.header("Build Your Own Model")
+            # ----------------------------------------------------------------------------------------------------------------
+            # Preprocess Data with Pipelines
+            # ----------------------------------------------------------------------------------------------------------------
+            categorical_features = ['Use Chip',
+                        'Merchant State',
+                        'Errors?',
+                        'Has Chip',
+                        'International',
+                        'Online',
+                        'day_of_week',
+                        'time_of_day']
             
-## Initial Modelling and Tests
-### What we tried
+            numerical_features = ['Amount',
+                        'Per Capita Income - Zipcode',
+                        'Yearly Income - Person',
+                        'Total Debt',
+                        'FICO Score',
+                        'Num Credit Cards',
+                        'Cards Issued',
+                        'Age_at_transaction',
+                        'income_to_debt',
+                        'timestamp',
+                        'distances']
+            
 
-### What we learnt        
- 
-"""
-)
-
-if len(st.session_state.training_features_df) > 0:
-
-    X_train = st.session_state.training_features_df
-    X_test = st.session_state.test_features_df
-    y_train = st.session_state.training_target_df.cat.codes
-    y_test = st.session_state.test_target_df.cat.codes
-
-
-    if page_option == "Create Your Own Model":
-        st.header("Build Your Own Model")
-        # ----------------------------------------------------------------------------------------------------------------
-        # Preprocess Data with Pipelines
-        # ----------------------------------------------------------------------------------------------------------------
-        categorical_features = ['Use Chip',
-                    'Merchant State',
-                    'Errors?',
-                    'Has Chip',
-                    'International',
-                    'Online',
-                    'day_of_week',
-                    'time_of_day']
-        
-        numerical_features = ['Amount',
-                    'Per Capita Income - Zipcode',
-                    'Yearly Income - Person',
-                    'Total Debt',
-                    'FICO Score',
-                    'Num Credit Cards',
-                    'Cards Issued',
-                    'Age_at_transaction',
-                    'income_to_debt',
-                    'timestamp',
-                    'distances']
-        
-
-        
-        # Preprocessing for numerical data
-        numeric_transformer = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='median')),
-            ('scaler', StandardScaler())
-        ])
-
-        # Preprocessing for categorical data
-        categorical_transformer = Pipeline(steps=[
-            ('imputer', SimpleImputer(strategy='most_frequent')),
-            ('onehot', OneHotEncoder(handle_unknown='ignore'))
-        ])
-
-        # Bundle preprocessing for numerical and categorical data
-        preprocessor = ColumnTransformer(
-            transformers=[
-                ('num', numeric_transformer, numerical_features),
-                ('cat', categorical_transformer, categorical_features)
+            
+            # Preprocessing for numerical data
+            numeric_transformer = Pipeline(steps=[
+                ('imputer', SimpleImputer(strategy='median')),
+                ('scaler', StandardScaler())
             ])
 
-        # ----------------------------------------------------------------------------------------------------------------
-        # Set the Tabs For Training Models
-        # ----------------------------------------------------------------------------------------------------------------
-        undersampling = st.toggle("Undersampling to handle imbalanced target?", value=True)
-        build_log_reg, build_random_forest, build_xgboost, build_nn = st.tabs([
-            "Logistic Regression", 
-            "Random Forest",
-            "XGBoost",
-            "Neural Network"
-        ])
-        
-        with build_log_reg:
-            # Define the model
-            max_iterations = st.number_input("Maximum Iterations", min_value=1, value=1000)
-            # undersampling = st.toggle("Undersampling to handle imbalanced target?", value=True)
-            model = LogisticRegression(random_state=42, max_iter=max_iterations)
+            # Preprocessing for categorical data
+            categorical_transformer = Pipeline(steps=[
+                ('imputer', SimpleImputer(strategy='most_frequent')),
+                ('onehot', OneHotEncoder(handle_unknown='ignore'))
+            ])
 
-            # Create the pipeline with RandomUnderSampler and preprocessing
-            pipeline = Pipeline(steps=[
-                    ('preprocessor', preprocessor),
-                    ('undersampler', RandomUnderSampler(random_state=42)),
-                    ('classifier', model)
-                    ])
-            # Hyperparameter tuning using GridSearchCV
-            param_grid = {
-                    'classifier__C': [0.1, 1.0, 10.0],
-                    'classifier__penalty': ['l1', 'l2'],
-                    'classifier__solver': ['liblinear', 'saga']
-                    }
+            # Bundle preprocessing for numerical and categorical data
+            preprocessor = ColumnTransformer(
+                transformers=[
+                    ('num', numeric_transformer, numerical_features),
+                    ('cat', categorical_transformer, categorical_features)
+                ])
+
+            # ----------------------------------------------------------------------------------------------------------------
+            # Set the Tabs For Training Models
+            # ----------------------------------------------------------------------------------------------------------------
+
+            build_log_reg, build_random_forest, build_xgboost = st.tabs([
+                "Logistic Regression", 
+                "Random Forest",
+                "XGBoost",
+                # "Neural Network"
+            ])
+
+            # declare alias for trained models
+            ss_models = st.session_state.trained_models
+
+            with build_log_reg:
+
+                # ----------------------------------------------------------------------------------------------------------------
+                # Build Logistic Regression
+                # ----------------------------------------------------------------------------------------------------------------
+                col1, col2 = st.columns(2)
+                with col1:
+                    # Define the model
+                    ss_key = 'log_reg'
+                    max_iterations = st.number_input("Maximum Iterations", min_value=1, value=1000)
+                    
+                    lr_model = set_logistic_regression_model(max_iterations)
+
+                    # Hyperparameter tuning using GridSearchCV
+                    st.write('Use an grid parameter optimiser')
+                    with st.echo():
+                        lr_param_grid = {
+                                'classifier__C': [0.1, 1.0, 10.0],
+                                'classifier__penalty': ['l1', 'l2'],
+                                'classifier__solver': ['liblinear', 'saga']
+                                }
+                with col2:
+                    optimise_model(X_train, y_train, lr_model, preprocessor, lr_param_grid, ss_models, ss_key)
+
+
             
-            warnings.filterwarnings("ignore")
-            
-            # Perform grid search with the pipeline, reduced n_jobs, and error_score='raise' for detailed errors
-            grid_search = GridSearchCV(pipeline, param_grid, cv=5, scoring='accuracy', n_jobs=1, error_score='raise')
+            with build_random_forest:
 
-            fit_button = st.button("Fit the Model")
-            if fit_button:
-                grid_search.fit(X_train, y_train)
+                # ----------------------------------------------------------------------------------------------------------------
+                # Build Random Forest
+                # ----------------------------------------------------------------------------------------------------------------
+                col1, col2 = st.columns(2)
+                with col1:
+                    # Define the model
+                    ss_key = 'random_forest'
+                    rf_model = set_random_forest_model()
 
-                # Best parameters and estimator
-                best_params = grid_search.best_params_
-                best_estimator = grid_search.best_estimator_
+                    # Hyperparameter tuning using GridSearchCV
+                    st.write('Use an grid parameter optimiser')
+                    with st.echo():
+                        rf_param_grid = {
+                            'classifier__n_estimators': [100, 200],
+                            'classifier__max_depth': [None, 10, 20],
+                            'classifier__min_samples_split': [2, 5],
+                            'classifier__min_samples_leaf': [1, 2]
+                            }
+                with col2:
+                    optimise_model(X_train, y_train, rf_model, preprocessor, rf_param_grid, ss_models, ss_key)
 
-                st.write("\nBest Parameters:")
-                st.write(best_params)
+            with build_xgboost:
+
+                # ----------------------------------------------------------------------------------------------------------------
+                # Build XGBoost Model
+                # ----------------------------------------------------------------------------------------------------------------
+                col1, col2 = st.columns(2)
+                with col1:
+                    # Define the model
+                    ss_key = 'XGBoost'
+                    xgb_model = set_xgboost_model()
+
+                    # Hyperparameter tuning using GridSearchCV
+                    st.write('Use an grid parameter optimiser')
+                    with st.echo():
+                        xgb_param_grid = {
+                            'classifier__n_estimators': [100, 200],
+                            'classifier__max_depth': [3, 6, 10],
+                            'classifier__learning_rate': [0.01, 0.1, 0.2],
+                            'classifier__subsample': [0.8, 1.0],
+                            'classifier__colsample_bytree': [0.8, 1.0]
+                        }
+                with col2:
+                    optimise_model(X_train, y_train, xgb_model, preprocessor, xgb_param_grid, ss_models, ss_key)
 
 
 
 
 
 
-    # ----------------------------------------------------------------------------------------------------------------
-    # Set the Tabs For Displaying Results
-    # ----------------------------------------------------------------------------------------------------------------
-    st.header("Modelling Outputs")
-    # set the tabs
-    tab_log_reg, tab_random_forest, tab_xgboost = st.tabs(["Logistic Regression Model", 
-                                                        "Random Forest Model", 
-                                                        "XGBoost Model"])
-    with tab_log_reg:
         # ----------------------------------------------------------------------------------------------------------------
-        # Logistic Regression Results
+        # Set the Tabs For Displaying Results
         # ----------------------------------------------------------------------------------------------------------------
-        model = 'log_reg'
-        if model in st.session_state.pre_trained_models:            
+        st.header("Modelling Outputs")
+        # set the tabs
+        tab_log_reg, tab_random_forest, tab_xgboost = st.tabs(["Logistic Regression Model", 
+                                                            "Random Forest Model", 
+                                                            "XGBoost Model"])
+        with tab_log_reg:
+            # ----------------------------------------------------------------------------------------------------------------
+            # Logistic Regression Results
+            # ----------------------------------------------------------------------------------------------------------------
+            rf_model = 'log_reg'
+            if rf_model in st.session_state.trained_models:            
 
-            ml_model = st.session_state.pre_trained_models[model]
+                ml_model = st.session_state.trained_models[rf_model]
 
-            display_model_report(ml_model, X_test, y_test)
+                display_model_report(ml_model, X_test, y_test)
 
-    with tab_random_forest:
-        # ----------------------------------------------------------------------------------------------------------------
-        # Random Forest Results
-        # ----------------------------------------------------------------------------------------------------------------
-        model = 'random_forest'
-        if model in st.session_state.pre_trained_models:            
+        with tab_random_forest:
+            # ----------------------------------------------------------------------------------------------------------------
+            # Random Forest Results
+            # ----------------------------------------------------------------------------------------------------------------
+            rf_model = 'random_forest'
+            if rf_model in st.session_state.trained_models:            
 
-            ml_model = st.session_state.pre_trained_models[model]
+                ml_model = st.session_state.trained_models[rf_model]
 
-            display_model_report(ml_model, X_test, y_test)
+                display_model_report(ml_model, X_test, y_test)
 
-    with tab_xgboost:
-        # ----------------------------------------------------------------------------------------------------------------
-        # Logistic Regression Results
-        # ----------------------------------------------------------------------------------------------------------------
-        model = 'XGBoost'
-        if model in st.session_state.pre_trained_models:            
+        with tab_xgboost:
+            # ----------------------------------------------------------------------------------------------------------------
+            # Logistic Regression Results
+            # ----------------------------------------------------------------------------------------------------------------
+            rf_model = 'XGBoost'
+            if rf_model in st.session_state.trained_models:            
 
-            ml_model = st.session_state.pre_trained_models[model]
+                ml_model = st.session_state.trained_models[rf_model]
 
-            display_model_report(ml_model, X_test, y_test)
+                display_model_report(ml_model, X_test, y_test)
 
 

@@ -38,6 +38,18 @@ if 'test_features_df' not in st.session_state:
 if 'test_target_df' not in st.session_state:
     st.session_state.test_target_df = pd.DataFrame()
 
+if 'n_users_for_train_test' not in st.session_state:
+    st.session_state.n_users_for_train_test = 0
+
+# if 'st.session_state.n_users' not in st.session_state:
+#     st.session_state.n_users = np.
+
+
+# Callback function to update session state
+def update_slider_value():
+    st.session_state.n_users_for_train_test = st.session_state.n_users
+
+
 
 # ****************************************************************************************************************
 # ----------------------------------------------------------------------------------------------------------------
@@ -61,6 +73,8 @@ if len(st.session_state.merged_df) > 0:
 
     st.sidebar.markdown("## Feature Engineering Output Options")
     n_users = merged_df['User'].nunique()
+    # st.session_state.n_users_for_train_test = n_users-1
+
     st.sidebar.markdown(f"There are **{n_users}** unique users in this dataset")
 
 # ----------------------------------------------------------------------------------------------------------------
@@ -68,11 +82,15 @@ if len(st.session_state.merged_df) > 0:
 # ----------------------------------------------------------------------------------------------------------------
     st.sidebar.markdown("#### Dataset Options For Training and Test Sets")
 
+
     
-    n_users_for_train_test = st.sidebar.select_slider("How many users for Training and Test Set?", 
-                             options=np.arange(0, n_users, 1),
-                             value=n_users-1
+    n_users_for_train_test = st.sidebar.select_slider("Select the number of users for training and test Set?", 
+                             options=np.arange(1, n_users, 1),
+                             value=st.session_state.n_users_for_train_test,
+                             key='n_users',
+                             on_change = update_slider_value,
                             )
+
     
     testing_fraction = st.sidebar.select_slider("What fraction of the dataset is for Testing",
                                                 options=np.arange(0.05, 0.61, 0.01),

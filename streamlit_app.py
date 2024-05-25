@@ -93,3 +93,4 @@ elif option == "Evaluate":
         st.text(report)
         st.write("### Confusion Matrix")
         plot_confusion_matrix(cm)
+
