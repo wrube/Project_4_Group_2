@@ -13,6 +13,9 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, ConfusionMatrixDisplay
 from imblearn.pipeline import Pipeline  
 from imblearn.under_sampling import RandomUnderSampler
+from pathlib import Path
+
+import warnings
 
 # ----------------------------------------------------------------------------------------------------------------
 # session state variables
@@ -161,3 +164,92 @@ def display_model_report(model, X_test, y_test):
 
 
         st.pyplot(f)
+
+
+@st.cache_data
+def train_model(X_train, y_train, _grid_search):
+
+    _grid_search.fit(X_train, y_train)
+
+
+
+@st.cache_resource
+def set_logistic_regression_model(max_iterations):  
+    return LogisticRegression(random_state=42, max_iter=max_iterations)
+
+
+
+@st.cache_resource
+def set_random_forest_model():  
+    return RandomForestClassifier(random_state=42)
+
+
+
+@st.cache_resource
+def set_xgboost_model():  
+    return XGBClassifier(random_state=42, 
+                         use_label_encoder=False, 
+                         eval_metric='logloss')
+
+
+@st.cache_resource
+def set_pipeline(_model, _preprocessor):
+    pipeline = Pipeline(steps=[
+        ('preprocessor', _preprocessor),
+        ('undersampler', RandomUnderSampler(random_state=42)),
+        ('classifier', _model)
+        ])
+    return pipeline
+
+@st.cache_resource
+def set_grid_search(_pipeline, _param_grid):
+    grid_search = GridSearchCV(_pipeline, _param_grid, cv=5, scoring='accuracy', n_jobs=1, error_score='raise')
+    return grid_search
+
+
+
+def optimise_model(X_train, y_train, _model, _preprocessor, _param_grid, _ss_model, ss_key):
+    warnings.filterwarnings("ignore")
+    set_pipeline.clear()
+    # Create the pipeline with RandomUnderSampler and preprocessing
+    pipeline = set_pipeline(_model, _preprocessor)
+            
+    # Perform grid search with the pipeline, reduced n_jobs, and error_score='raise' for detailed errors
+    set_grid_search.clear()
+    grid_search = set_grid_search(pipeline, _param_grid)
+    
+
+    # create the fit model button
+    fit_button = st.button("Optimise model parameters",
+                           key=f"{ss_key}_optimise")
+    if fit_button:
+        
+        
+        train_model.clear()
+        
+        
+        train_model(X_train, y_train, grid_search)
+
+
+                # Best parameters and estimator
+        best_params = grid_search.best_params_
+        best_estimator = grid_search.best_estimator_
+
+                # save to session state
+        _ss_model[ss_key] = best_estimator
+
+        st.write("\nBest Parameters:")
+        st.write(best_params)
+
+    # create the save model button
+    save_name = st.text_input("Model Name (will be saved in the project 'models' folder)", 
+                                value=f"{ss_key}_training_model.joblib",
+                                key=f"{ss_key}_save_name")
+    save_model_button = st.button("Save the model",
+                                key=f"{ss_key}_save_button",
+                                disabled=ss_key not in _ss_model.keys())
+    
+    # action save click
+    if (save_model_button) & (ss_key in _ss_model.keys()):
+        joblib.dump(_ss_model[ss_key], Path.cwd() / 'models' / save_name)
+    
