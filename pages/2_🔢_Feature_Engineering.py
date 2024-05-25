@@ -83,7 +83,7 @@ if len(st.session_state.merged_df) > 0:
     
     n_users_for_train_test = st.sidebar.select_slider("Select the number of users for training and test Set?", 
                              options=np.arange(1, n_users, 1),
-                             value=st.session_state.n_users_for_train_test,
+                            #  value=st.session_state.n_users_for_train_test,
                              key='n_users',
                              on_change = update_slider_value,
                             )

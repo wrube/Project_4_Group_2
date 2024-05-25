@@ -44,5 +44,10 @@ st.write("# Welcome to Project 4 Group 2: We're Solving Credit Card Fraud")
 
 st.markdown("""
 We're trying to predict fraudlent credit-card transactions using a synthetic dataset from Kaggle.
+
+** bold text **     
+1. x
+2. y
+
 """
 )

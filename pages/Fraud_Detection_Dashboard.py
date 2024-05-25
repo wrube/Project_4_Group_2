@@ -242,7 +242,6 @@ def display_summary():
     If the model indicates that the 'transaction amount' is the most important feature, it means that the transaction amount plays a significant role in determining whether a transaction is fraudulent or not. This insight can be valuable for developing targeted fraud detection strategies.
     """)
 
-# Main Function
 def main():
     st.title("Fraud Detection Dashboard")
 
@@ -274,7 +273,7 @@ def main():
         df = load_data('data/transactions_users_100.csv')
         st.sidebar.write("Using default dataset for analysis.")
 
-    option = st.sidebar.selectbox("Choose an action", ["Make a prediction", "Evaluate the model", "Display feature importance", "Summary of Metrics", "Exit"])
+    option = st.sidebar.selectbox("Choose an action", ["Make a prediction", "Evaluate the model", "Display feature importance", "Summary of Metrics", "Predict and Display Fraudulent Transactions", "Exit"])
 
     if option == "Make a prediction":
         row_index = st.sidebar.number_input(f"Enter the row index (0 to {len(df) - 1}) for prediction:", min_value=0, max_value=len(df) - 1, step=1)
@@ -315,6 +314,19 @@ def main():
 
     elif option == "Summary of Metrics":
         display_summary()
+
+    elif option == "Predict and Display Fraudulent Transactions":
+        try:
+            X = df.drop(columns=["Is Fraud?"])
+            y_pred = loaded_model.predict(X)
+            df['Prediction'] = y_pred
+            fraudulent_transactions = df[df['Prediction'] == 1]
+
+            st.subheader("Fraudulent Transactions")
+            st.write(f"Total fraudulent transactions detected: {len(fraudulent_transactions)}")
+            st.dataframe(fraudulent_transactions)
+        except Exception as e:
+            st.error(f"Error predicting fraudulent transactions: {e}")
 
     elif option == "Exit":
         st.markdown("You have chosen to exit the application. Thank you for using the model evaluation and prediction tool.")
