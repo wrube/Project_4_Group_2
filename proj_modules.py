@@ -6,6 +6,7 @@ import joblib
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
+from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
@@ -191,6 +192,11 @@ def set_xgboost_model():
                          use_label_encoder=False, 
                          eval_metric='logloss')
 
+@st.cache_resource
+def set_nn_model():  
+    return MLPClassifier(random_state=42, 
+                         max_iter=500,
+                         )
 
 @st.cache_resource
 def set_pipeline(_model, _preprocessor):
