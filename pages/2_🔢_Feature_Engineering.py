@@ -39,12 +39,12 @@ if 'test_target_df' not in st.session_state:
     st.session_state.test_target_df = pd.DataFrame()
 
 if 'n_users_for_train_test' not in st.session_state:
-    st.session_state.n_users_for_train_test = 0
+    st.session_state.n_users_for_train_test = 5
 
 
 # Callback function to update session state
 def update_slider_value():
-    st.session_state.n_users_for_train_test = st.session_state.n_users
+    st.session_state.n_users_for_train_test = st.session_state.n_users_slider
 
 
 
@@ -58,7 +58,7 @@ st.set_page_config(page_title="Feature Engineering",
 
 if len(st.session_state.merged_df) > 0:
 
-    # alias for ession_state.merged_df
+    # alias for session_state.merged_df
     merged_df = st.session_state.merged_df
 
 
@@ -70,7 +70,6 @@ if len(st.session_state.merged_df) > 0:
 
     st.sidebar.markdown("## Feature Engineering Output Options")
     n_users = merged_df['User'].nunique()
-    # st.session_state.n_users_for_train_test = n_users-1
 
     st.sidebar.markdown(f"There are **{n_users}** unique users in this dataset")
 
@@ -83,8 +82,8 @@ if len(st.session_state.merged_df) > 0:
     
     n_users_for_train_test = st.sidebar.select_slider("Select the number of users for training and test Set?", 
                              options=np.arange(1, n_users, 1),
-                            #  value=st.session_state.n_users_for_train_test,
-                             key='n_users',
+                             value=st.session_state.n_users_for_train_test,
+                             key='n_users_slider',
                              on_change = update_slider_value,
                             )
 
@@ -113,13 +112,20 @@ if len(st.session_state.merged_df) > 0:
                                                 max_value=n_users - 1,
                                                 value=(0, n_users - 1)
                                                 )
+        
         if len(st.session_state.nearly_final_df) > 0:
             nearly_final_df = st.session_state.nearly_final_df
-            trimmed_df = nearly_final_df.loc[(nearly_final_df['User'] >= first_user) & 
+            
+            trimmed_df = nearly_final_df.loc[(nearly_final_df['User'] >= first_user)  & 
                                              (nearly_final_df['User'] < last_user)].drop('User', axis=1)
+            
+            trimmed_df.loc[:, 'Is Fraud?'] = trimmed_df['Is Fraud?'].cat.codes
             
             save_name = st.sidebar.text_input("Dataframe save name", 
                                               value=f"cleansed_dataset_users_{first_user}-{last_user}.csv")
+            
+            st.dataframe(trimmed_df)
+
             
             save_button = st.sidebar.button("Save to csv (in 'data' directory)")
             if save_button:
@@ -181,7 +187,7 @@ Additional features can be extracted from the dataset which we deemed useful to 
         merged_df['day_of_week'] = merged_df['datetime'].dt.dayofweek.astype(np.int8)
 
         # Convert datetime to Unix timestamp
-        merged_df['timestamp'] = merged_df['datetime'].astype(int) / 10**9  # Convert to seconds
+        merged_df['timestamp'] = merged_df['datetime'].astype(np.int64) / 10**9  # Convert to seconds
 
         # Put times into bins of time-of-day
 
@@ -236,17 +242,17 @@ Additional features can be extracted from the dataset which we deemed useful to 
         merged_df.loc[distance_candidates, 'distances'] = distances
         merged_df.loc[international_filters, 'distances'] = max_distance
 
+        # ----------------------------------------------------------------------------
+        # Additional filtering
+        # ----------------------------------------------------------------------------
+        # Filter out negative amounts
+        merged_df = merged_df.loc[merged_df['Amount'] > 0.0]
 
+        # replace NaN Errors with No Error
+        merged_df.loc[:, 'Errors?'] = merged_df['Errors?'].fillna('No Error')
 
-    # Additional filtering
-    # Filter out negative amounts
-    merged_df = merged_df.loc[merged_df['Amount'] > 0.0]
-
-    # replace NaN Errors with No Error
-    merged_df.loc[:, 'Errors?'] = merged_df['Errors?'].fillna('No Error')
-
-    # replace NaN in Merchant State with Online
-    merged_df.loc[:, 'Merchant State'] = merged_df['Merchant State'].fillna('Online')
+        # replace NaN in Merchant State with Online
+        merged_df.loc[:, 'Merchant State'] = merged_df['Merchant State'].fillna('Online')
 
     
 
@@ -257,9 +263,26 @@ Additional features can be extracted from the dataset which we deemed useful to 
 
 
     st.markdown("""
-    ### Dropping Columns and Final Clean
-    
-    Here 
+### Dropping Columns and Final Clean
+
+Here we drop the following columns:
+
+| Feature                   | Reason |
+|:-------------------------|:--------|
+|Card                        | Card index number not predictive. Was used for merge.
+|Year                        | Rolled into datetime
+|Month                       | Rolled into datetime
+|Birth Year                  | Used for 'Age at transaction'
+|Day                         |  Rolled into datetime
+|Time                        |  Rolled into datetime and binned
+|Merchant City               | Too much granularity 
+|Zip                         | Used in distance calculation. Too much granularity to keep
+|Zipcode                     |  Used in distance calculation. Too much granularity to keep
+|CARD INDEX                  | 
+|Year PIN last Changed       | 
+|MCC                         | 
+|datetime                    | 
+|Card on Dark Web            |                     
     """
     )
     
@@ -282,8 +305,7 @@ Additional features can be extracted from the dataset which we deemed useful to 
     # drop the columns
     merged_and_drop_df = merged_df.drop(columns=columns_to_drop, axis=1)
 
-    st.session_state.nearly_final_df = merged_and_drop_df.loc[merged_and_drop_df['User'] 
-                                                              < n_users_for_train_test].reset_index()
+    st.session_state.nearly_final_df = merged_and_drop_df.reset_index()
 
 
 
@@ -294,14 +316,18 @@ Additional features can be extracted from the dataset which we deemed useful to 
 # ----------------------------------------------------------------------------------------------------------------
     # Define the target variable
     target = 'Is Fraud?'
-    
+    nearly_final_df = st.session_state.nearly_final_df
+
     # Split the data into training and testing sets
-    X = st.session_state.nearly_final_df.drop(columns=target, axis=1)
-    y = st.session_state.nearly_final_df[target]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=testing_fraction, random_state=42)
+    X = (nearly_final_df.loc[nearly_final_df['User']  < n_users_for_train_test]
+                                        .drop(columns=['User', target], axis=1))
+    
+    y = nearly_final_df.loc[nearly_final_df['User'] < n_users_for_train_test][target]
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, y, 
+                                                        test_size=testing_fraction, 
+                                                        random_state=42)
 
-
-    # final_df = merged_and_drop_df.d
     st.session_state.training_features_df = X_train
     st.session_state.training_target_df = y_train
     st.session_state.test_features_df = X_test

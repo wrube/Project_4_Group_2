@@ -1,14 +1,11 @@
 # import modules
 import streamlit as st
 import numpy as np
-from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import seaborn as sns
 from scipy.stats import chi2_contingency, ttest_ind
 
-#import modules
-# sys.path.append(Path.cwd().parent)
 from proj_modules import *
 
 
@@ -90,7 +87,8 @@ if len(st.session_state.training_features_df) > 0:
         # st.write(final_cleaned_df[[column, 'Is Fraud?']].groupby('Is Fraud?').value_counts())
         
         # Group by 'column' and Is Fraud, then count occurrences
-        pivot_df = (final_cleaned_df.pivot_table(index=column, 
+        pivot_df = (final_cleaned_df.pivot_table(index=column,
+                                              observed=True, 
                                               columns='Is Fraud?', 
                                               aggfunc='size')
                                 .rename(columns={'No': 'Not Fraud',
@@ -119,9 +117,6 @@ Here we use the scipy package for the calculation
 
         st.write(f"Chi-squared statistic: {chi2_test.statistic:.2f}")
         st.write(f"P-value:  {chi2_test.pvalue:.8f}")
-
-        # expected_df = pd.DataFrame(expected)
-        
 
         col1, col2= st.columns(2, gap='medium')
 
@@ -182,8 +177,6 @@ Here we use the scipy package for the calculation
 
 
     else:
-        # # Separate data for 'Is Fraud' = 0 and 'Is Fraud' = 1
-        # not_fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == 0]
         not_fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == 'No', column]
 
         fraud_df = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == 'Yes', column]
@@ -207,7 +200,7 @@ Here we use the scipy package for the calculation
             st.markdown("""
 ### Statistical Significance
 
-Using the two sample Welech's t-test we can test for significance betweens the 
+Using the two sample Welch's t-test (assume different variances between groups) we can test for significance betweens the 
 means of 'Fraud' and 'Not Fraud' of this category. 
 
 Here we use the scipy package for the calculation                        
@@ -248,8 +241,40 @@ Here we use the scipy package for the calculation
         fig2.set_figheight(3)
         st.pyplot(fig2)
 
+    # ----------------------------------------------------------------------------------------------------------------
+    # Fraud by Day and Time of Day
+    # ----------------------------------------------------------------------------------------------------------------
+
+    fraud_by_day_time = final_cleaned_df.loc[final_cleaned_df['Is Fraud?'] == 'Yes']
+
+    fraud_by_day_time = fraud_by_day_time.pivot_table(values='Is Fraud?', 
+                                                observed=True,
+                                                 index=['day_of_week', 'time_of_day'], 
+                                                 aggfunc='count'
+                                                 ).reset_index()
+
+
+    # Pivotting the DataFrame to create a matrix suitable for heatmap
+    heatmap_data = fraud_by_day_time.pivot(index='day_of_week', columns='time_of_day', values='Is Fraud?')
+
+    # Plotting the heatmap
+    fig3, ax = plt.subplots()
+    sns.heatmap(heatmap_data, cmap='coolwarm', annot=True, 
+                fmt="", 
+                cbar_kws={'label': 'Count of Fraud Occurrence'})
+    ax.set_title('Fraud Occurrence by Day of the Week and Time of the Day')
+    ax.set_xlabel('Time of Day')
+    ax.set_ylabel('Day of the Week')
+
+    # Display the heatmap
+    st.pyplot(fig3)
+
+
 else:
     st.markdown("### DataFrame not yet ready: Please complete the previous steps")
 
 
+
+
+   
     

@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
+from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
@@ -79,9 +79,16 @@ if page_option == "Load Pre-trained models":
                                    value="models/trained_model100_xgboost.joblib",
                                       )
     
+    nn_model_path = st.sidebar.text_input("Neural Network",
+                                   value="models/trained_model100_neuralnetwork.joblib",
+                                      )
+    
+
+
     model_paths = {'log_reg': log_reg_model_path, 
                    'random_forest': random_forest_path, 
-                   'XGBoost': xgboost_model_path}
+                   'XGBoost': xgboost_model_path,
+                   'neural_network': nn_model_path}
 
     load_models_button = st.sidebar.button("Load Models",
                       )
@@ -121,6 +128,7 @@ with analysis_tab:
         y_train = st.session_state.training_target_df.cat.codes
         y_test = st.session_state.test_target_df.cat.codes
 
+        
 
         if page_option == "Create Your Own Model":
             st.header("Build Your Own Model")
@@ -173,11 +181,11 @@ with analysis_tab:
             # Set the Tabs For Training Models
             # ----------------------------------------------------------------------------------------------------------------
 
-            build_log_reg, build_random_forest, build_xgboost = st.tabs([
+            build_log_reg, build_random_forest, build_xgboost, build_neural_network = st.tabs([
                 "Logistic Regression", 
                 "Random Forest",
                 "XGBoost",
-                # "Neural Network"
+                "Neural Network"
             ])
 
             # declare alias for trained models
@@ -257,6 +265,29 @@ with analysis_tab:
                     optimise_model(X_train, y_train, xgb_model, preprocessor, xgb_param_grid, ss_models, ss_key)
 
 
+            with build_neural_network:
+
+                # ----------------------------------------------------------------------------------------------------------------
+                # Build Neural Network Model
+                # ----------------------------------------------------------------------------------------------------------------
+                col1, col2 = st.columns(2)
+                with col1:
+                    # Define the model
+                    ss_key = 'neural_network'
+                    nn_model = set_nn_model()
+
+                    # Hyperparameter tuning using GridSearchCV
+                    st.write('Use an grid parameter optimiser')
+                    with st.echo():
+                        nn_param_grid = {
+                             'classifier__hidden_layer_sizes': [(50,), (100,), (50, 50)],
+                             'classifier__activation': ['relu', 'tanh'],
+                             'classifier__solver': ['adam', 'sgd'],
+                             'classifier__alpha': [0.0001, 0.001],
+                             'classifier__learning_rate': ['constant', 'adaptive'] 
+                        }
+                with col2:
+                    optimise_model(X_train, y_train, nn_model, preprocessor, nn_param_grid, ss_models, ss_key)
 
 
 
@@ -264,11 +295,16 @@ with analysis_tab:
         # ----------------------------------------------------------------------------------------------------------------
         # Set the Tabs For Displaying Results
         # ----------------------------------------------------------------------------------------------------------------
-        st.header("Modelling Outputs")
+        st.header("Modelling Outputs on Test Set")
+
+        st.markdown(f"""This test set has {y_test.value_counts()[1]} 'Fraudulent' cases.""")
+
         # set the tabs
-        tab_log_reg, tab_random_forest, tab_xgboost = st.tabs(["Logistic Regression Model", 
+        tab_log_reg, tab_random_forest, tab_xgboost, tab_nn = st.tabs(["Logistic Regression Model", 
                                                             "Random Forest Model", 
-                                                            "XGBoost Model"])
+                                                            "XGBoost Model",
+                                                            "Neural Network"]
+                                                            )
         with tab_log_reg:
             # ----------------------------------------------------------------------------------------------------------------
             # Logistic Regression Results
@@ -299,6 +335,18 @@ with analysis_tab:
             if rf_model in st.session_state.trained_models:            
 
                 ml_model = st.session_state.trained_models[rf_model]
+
+                display_model_report(ml_model, X_test, y_test)
+
+
+        with tab_nn:
+            # ----------------------------------------------------------------------------------------------------------------
+            # Neural Network Results
+            # ----------------------------------------------------------------------------------------------------------------
+            nn_model = 'neural_network'
+            if nn_model in st.session_state.trained_models:            
+
+                ml_model = st.session_state.trained_models[nn_model]
 
                 display_model_report(ml_model, X_test, y_test)
 
