@@ -119,7 +119,37 @@ This Python file serves as a tool for fraud detection and model evaluation in a 
  importance without the need for complex coding or data manipulation.        
 
 This script empowers users to interactively explore and analyze fraud detection models, facilitating informed decision-making in fraud prevention efforts.
+          
+## Possible Further Improvements to the Model
+While our project has successfully developed a robust fraud detection system, there are several areas where we could further enhance its performance and functionality. 
+Here are some possible improvements:
 
+* **Advanced Feature Engineering:**
+            - Implement techniques like feature interaction to capture complex relationships between variables.
+            - Explore temporal features to caputre time-related patterns in fraudulent transactions.
+
+* **Hyperparameter Optimization:**
+            - Utilize advanced hyperparameter tuning techniques such as Bayesian Optimization, Random Search or Genetic Algorithms to polish the models effectively.
+
+* **Handling Imbalanced Data:**
+            - Apart from using SMOTE (Synthetic Minority Over-sampling Technique) we could have tried ADASYN (Adaptive Synthetic Sampling).
+
+* **Automated Machine Learning (AutoML):**
+            - Incorporate AutoML frameworks to automate the process of model selection, hyperparameter tuning, and feature engineering, potentially uncovering better-performing models.
+        
+* **Robust Validation Techniques:**
+            - Implement more robust cross-validation techniques, such as stratified k-fold cross-validation, to ensure our model generalizes well to unseen data.
+
+* **Model Interpretability:** 
+            - Enhancing model interpretability through techniques like SHAP (SHapley Additive exPlanations) could have helped in understanding the contribution of each feature to the model's predictions, 
+            providing more insights into the factors driving fraudulent transactions.
+
+            
+Throughout our project, we primarily focused on the recall parameter for fraudulent transactions. This focus ensured that our model was not only trained to predict non-fraudulent transactions accurately
+ but also excelled at identifying fraudulent ones. High recall is crucial in fraud detection, as it minimizes the chances of missing fraudulent activities, thereby improving the robustness and reliability
+ of the fraud detection system. By prioritizing recall, we aimed to reduce the false negative rate, ensuring that as many fraudulent transactions as possible were correctly identified.
+              
+            
 ## Conclusion:
 Our project developed a robust fraud detection system for credit card transactions using machine learning techniques. We meticulously prepared the data, conducted exploratory data analysis
 to identify key patterns, and developed and evaluated multiple machine learning models. Through iterative refinement, we achieved highly accurate fraud detection capabilities, enhancing security
