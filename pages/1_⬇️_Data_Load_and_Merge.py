@@ -60,14 +60,19 @@ st.sidebar.header("Data Load")
 st.markdown(
     """ 
     
-    Here we walk through the various steps used to load and clean the data. Kaggle provides 3 major synthetic tables:
-    - `sd254_users.csv`: Credit card holders
-    - `sd254_cards.csv`: Credit cards
-    - `credit_card_transactions-ibm_v2.csv`: Transactions
+Here we walk through the various steps used to load and clean the data. Kaggle provides 3 major synthetic tables:
+- `sd254_users.csv`: Credit card holders
+- `sd254_cards.csv`: Credit cards
+- `credit_card_transactions-ibm_v2.csv`: Transactions
 
 
-    ## Instructions
-    
+## Instructions
+1. Download the dataset from [Kaggle](https://www.kaggle.com/datasets/ealtman2019/credit-card-transactions/data?select=credit_card_transactions-ibm_v2.csv)
+2. After cloning the gitHub repo, unzip the files into the project `data` folder
+3. Use the [create_dataset.ipynb](create_dataset.ipynb) file to trim the transactions file (2.5GB) into 100 and 500 user files.
+4. Start using this page by ensuring the file names are correct on the sidebar.
+5. Click the Merge button to begin the merge process.
+6. Click through the different pages in order and let them run until completion before clicking on the next page.
 
     """
 )

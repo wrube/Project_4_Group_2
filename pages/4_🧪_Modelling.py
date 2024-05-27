@@ -14,14 +14,11 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
-# from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, ConfusionMatrixDisplay
+from sklearn.metrics import accuracy_score, recall_score, precision_score
 from imblearn.pipeline import Pipeline  
 from imblearn.under_sampling import RandomUnderSampler
 
 
-
-#import modules
-# sys.path.append(Path.cwd().parent)
 from proj_modules import *
 
 
@@ -106,16 +103,89 @@ intro_tab, analysis_tab = st.tabs(["Initial Modelling and Tests",
                                    "Model Build and Analysis"])
 
 with intro_tab:
+
+    data_2 = {
+        'model': ['Logistic Regression', 'Random Forest', 'XGBoost', 'Neural Network'],
+        'accuracy': [0.85, 0.92, 0.92, 0.88],
+        'precision_nf': [1.00, 1.00, 1.00, 1.0],
+        'recall_nf': [0.85, 0.92, 0.92, 0.88],
+        'f1_nf': [0.92, 0.96, 0.96, 0.94],
+        'precision_f': [0.01, 0.01, 0.01, 0.01],
+        'recall_f': [0.86, 0.90, 0.93, 0.88],
+        'f1_f': [0.01, 0.02, 0.02, 0.01]
+    }
+    df_100 = pd.DataFrame(data_2)
+
+
+    data_3 = {
+        'model': ['Logistic Regression', 'Random Forest', 'XGBoost', 'Neural Network'],
+        'accuracy': [0.93, 0.92, 0.94, 0.89],
+        'precision_nf': [1.0, 1.0, 1.0, 1.0],
+        'recall_nf': [0.93, 0.92, 0.94, 0.88],
+        'f1_nf': [0.96, 0.96, 0.97, 0.94],
+        'precision_f': [0.01, 0.01, 0.02, 0.01],
+        'recall_f': [0.93, 0.94, 0.97, 0.98],
+        'f1_f': [0.03, 0.03, 0.04, 0.02]
+    }
+    df_500 = pd.DataFrame(data_3)
+
     st.markdown("""
     # 🧪 Modelling
-                
-    ## Initial Modelling and Tests
-    ### What we tried
 
-    ### What we learnt        
-    
+## What we tried:
+Throughout the analysis, the following Machine Learning Models were used to assess the data:
+1) K-Means (KM): Clusters data based on feature similarities
+2) Logistic Regression (LR): Algorithm used for binary classification that models the probability of a binary outcome using a logistic function.
+3) Random Forest (RF): Constructs multiple decision trees during training and outputs the mode of the classes (classification) or mean prediction (regression) of the individual trees.
+4) XGBoost (XG): Builds models in a stage-wise fashion to correct errors made by previous models.
+5) Deep Neural Network (DNN): A neural network with multiple hidden layers that can learn complex patterns in data through hierarchical feature learning.
+
+## Phase 1- Initial tests:
+After cleaning the data, the first step was to independently run all models to form a foundational base for future tests. No manipulation or model tweaking was conducted at this stage
+The following information was gleaned:
+- The KM model showed no useful relationship or information, likely due to the binary nature of the target column. No further testing required
+- The CNN and LR models showed very little promise, with 100% true-negatives for non-fraud columns, and 100% false-negatives in the fraud columns
+- The RF and XG models attained some measure of true-positive incidences of fraud, but capped at 50% for XGBoost
+During analysis, it was concluded that the primary issue of the dataset was the great disparity in values between fraud and non-fraud, with a ratio of 1:270
+
+## Phase 2- Model manipulation and standardisation
+With a baseline established, the next step was to standardise each of the tests. To do this, a pipeline was created to process the data, and was adapted to fit the needs of all models. Furthermore, to handle the imbalance of outcomes, undersampling was implemented during the training phase. These models were all conducted using 100 of the available 2000 users, and the results are tabulated below.
+
     """
     )
+    st.dataframe(df_100)
+
+    st.markdown(""" 
+
+At this stage, the following was observed:
+- All models now showed an apptitude for classifying fraud, alligning significantly better with the aims set out in the project proposal. The precision and f1 valuese are low across the models due to the imbalance of testing data
+- The weakest model was the LR, with the lowest values in all categories
+- Second weakest model was the NN for similar reasons to LR
+- With similar results, the only aspect that raised XG over RF was an extra 3% ability to classify true-positives
+
+## Phase 3- Modeling on larger datasets
+With success during phase 2, all models showed a relative amount of potential and so all models were conducted with a dataset of 450. The tabulated results are shown below.
+
+""")
+
+    st.dataframe(df_500)
+
+    st.markdown(""" 
+
+The final observations are as follows:
+- All models showed some measure of improvement, however precision and f1 for fraud is still low due to the imbalance of test data
+- LR: Increased scores for all measures, and was the model with the greatest improvement
+- RF: Only improved in recalling fraud
+- XG: Increased slightly in all measures
+- NN: Only improved in recalling fraud, but to a high measure
+
+## Conclusive outcome
+After the modelling at 450 users, the overall best model can be argued depending on the overall goal of use:
+
+- The model with the highest ability to predict fraud is the NN model, however the accuracy and recall of non-fraud values is the lowest of all models
+- The model with the highest recall of both fraud and non-fraud collectively is the XG model. While lower by 1% recalling fraud than the NN model, the added accuracy and non-fraud model more than make up for it
+- For the purpose of this showcase, we will be demonstrating with the XGBoost model
+""")
 
 with analysis_tab:
 
@@ -350,4 +420,50 @@ with analysis_tab:
 
                 display_model_report(ml_model, X_test, y_test)
 
+        # ----------------------------------------------------------------------------------------------------------------
+        # Neural Network Results
+        # ----------------------------------------------------------------------------------------------------------------
+        compare_models_button = st.button("Compare Model Metrics")
+
+        if compare_models_button:
+            accuracies = {}
+            precisions = {}
+            recalls = {}
+            
+            for model_name, model in st.session_state.trained_models.items():
+                y_pred = model.predict(X_test)
+                accuracies[model_name] = accuracy_score(y_test, y_pred)
+                precisions[model_name] = precision_score(y_test, y_pred)
+                recalls[model_name] = recall_score(y_test, y_pred)
+            metrics_df = pd.DataFrame([accuracies, precisions, recalls])
+            metrics_df = metrics_df.rename(index={0: 'Accuracy',
+                                                  1: 'Precision',
+                                                  2: 'Recall'}).T
+
+            # st.dataframe(metrics_df)
+            n_metrics = len(metrics_df)
+
+            x_axis = np.arange(n_metrics) + 1
+            labels = metrics_df.index
+
+            f, (ax1, ax2, ax3) = plt.subplots(1, 3)
+
+            ax1.bar(x_axis, metrics_df['Accuracy'])
+            ax1.set_xticks(x_axis, labels, rotation=60)
+            ax1.set_title('Accuracy')
+            ax1.set_ylabel('Fraction')
+            
+            ax2.bar(x_axis, metrics_df['Precision'])
+            ax2.set_xticks(x_axis, labels, rotation=60)
+            ax2.set_title('Precision')
+            ax2.set_ylabel('Fraction')
+
+            ax3.bar(x_axis, metrics_df['Recall'])
+            ax3.set_xticks(x_axis, labels, rotation=60)
+            ax3.set_title('Recall')
+            ax3.set_ylabel('Fraction')
+            
+            f.set_figheight(3)
+            f.tight_layout(pad=0.4, w_pad=0.5)
+            st.pyplot(f)
 

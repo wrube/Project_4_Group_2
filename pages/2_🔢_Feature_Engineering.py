@@ -278,11 +278,11 @@ Here we drop the following columns:
 |Merchant City               | Too much granularity 
 |Zip                         | Used in distance calculation. Too much granularity to keep
 |Zipcode                     |  Used in distance calculation. Too much granularity to keep
-|CARD INDEX                  | 
-|Year PIN last Changed       | 
-|MCC                         | 
-|datetime                    | 
-|Card on Dark Web            |                     
+|CARD INDEX                  | Not predictive
+|Year PIN last Changed       | Tried to feature engineer this but not used in this project
+|MCC                         | Could potentially use, but not used in this project
+|datetime                    | Discarded after extracting day of week and making an integer form of this
+|Card on Dark Web            | Could be very useful, however in our datasets, all of this was 0, therefore dropped
     """
     )
     
