@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import warnings
 import sklearn
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import LabelEncoder
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -39,7 +42,7 @@ def predict_row(loaded_model, row):
     except Exception as e:
         st.error(f"Error during prediction: {e}")
         return None, None, None
-    return pred_dict, prediction[0], prediction_proba[0]
+    return pred_dict, prediction, prediction_proba
 
 def display_prediction(pred_dict, prediction, prediction_proba):
     """Display the prediction results."""
@@ -59,43 +62,34 @@ def evaluate_model(loaded_model, df):
     try:
         X = df.drop(columns=["Is Fraud?"])
         y = df["Is Fraud?"]
+
+        # Encode y_true to numerical labels
+        label_encoder = LabelEncoder()
+        y_encoded = label_encoder.fit_transform(y)
+
         y_pred = loaded_model.predict(X)
         y_pred_proba = loaded_model.predict_proba(X)[:, 1]
 
-        accuracy = accuracy_score(y, y_pred)
+        accuracy = accuracy_score(y_encoded, y_pred)
         
         # Convert classification report to DataFrame
-        report_dict = classification_report(y, y_pred, output_dict=True)
+        report_dict = classification_report(y_encoded, y_pred, output_dict=True)
         report_df = pd.DataFrame(report_dict).transpose()
         
-        cm = confusion_matrix(y, y_pred)
+        cm = confusion_matrix(y_encoded, y_pred)
 
         st.write("**Accuracy:**", accuracy)
         st.write("**Classification Report:**")
         st.table(report_df)
 
         fig, ax = plt.subplots(figsize=(10, 7))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Legitimate', 'Fraudulent'], yticklabels=['Legitimate', 'Fraudulent'], ax=ax)
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_, ax=ax)
         plt.xlabel('Predicted')
         plt.ylabel('Actual')
         plt.title('Confusion Matrix')
         st.pyplot(fig)
     except Exception as e:
         st.error(f"Error during model evaluation: {e}")
-
-def get_feature_names(column_transformer):
-    """Get feature names from all transformers in the ColumnTransformer."""
-    output_features = []
-    for name, transformer, features in column_transformer.transformers_:
-        if transformer == 'drop':
-            continue
-        if hasattr(transformer, 'get_feature_names_out'):
-            output_features.extend(transformer.get_feature_names_out(features))
-        elif hasattr(transformer, 'get_feature_names'):
-            output_features.extend(transformer.get_feature_names())
-        else:
-            output_features.extend(features)
-    return output_features
 
 def display_feature_importance(loaded_model, df, top_n=20):
     """Display the top N feature importances of the model."""
@@ -108,13 +102,23 @@ def display_feature_importance(loaded_model, df, top_n=20):
             preprocessor = None
 
         if preprocessor is not None:
+            # Fit the preprocessor on the DataFrame
             preprocessor.fit(df.drop(columns=["Is Fraud?"]))
+            # Transform the DataFrame using the preprocessor
+            X_transformed = preprocessor.transform(df.drop(columns=["Is Fraud?"]))
+            # Get feature names after preprocessing
             feature_names = get_feature_names(preprocessor)
         else:
             feature_names = [f"Feature {i}" for i in range(len(model.feature_importances_))]
 
         if hasattr(model, 'feature_importances_'):
             feature_importances = model.feature_importances_
+
+            # Ensure the lengths match by truncating the longer array
+            min_length = min(len(feature_importances), len(feature_names))
+            feature_importances = feature_importances[:min_length]
+            feature_names = feature_names[:min_length]
+
             sorted_idx = np.argsort(feature_importances)[-top_n:]
             sorted_idx = sorted_idx[::-1]  # Reverse to descending order
 
@@ -128,6 +132,21 @@ def display_feature_importance(loaded_model, df, top_n=20):
             st.error("The model does not have feature_importances_ attribute.")
     except Exception as e:
         st.error(f"Error displaying feature importances: {e}")
+
+# Helper function to get feature names from the preprocessor
+def get_feature_names(column_transformer):
+    """Get feature names from all transformers in the ColumnTransformer."""
+    output_features = []
+    for name, transformer, features in column_transformer.transformers_:
+        if transformer == 'drop':
+            continue
+        if hasattr(transformer, 'get_feature_names_out'):
+            output_features.extend(transformer.get_feature_names_out(features))
+        elif hasattr(transformer, 'get_feature_names'):
+            output_features.extend(transformer.get_feature_names(features))
+        else:
+            output_features.extend(features)
+    return output_features
 
 def display_summary():
     """Display a summary of evaluation metrics in the context of credit card fraud detection."""
@@ -246,9 +265,10 @@ def main():
     st.title("🚨 Fraud Detection Dashboard")
 
     models = {
-        '1': ('XGBoost', 'models/trained_model100_xgboost.joblib'),
-        '2': ('Logistic Regression', 'models/trained_model100_logisticregression.joblib'),
-        '3': ('Random Forest', 'models/trained_model100_randomforest.joblib')
+        '1': ('XGBoost', 'models/XGBoost_training_model.joblib'),
+        '2': ('Logistic Regression', 'models/log_reg_training_model.joblib'),
+        '3': ('Random Forest', 'models/random_forest_training_model.joblib'),
+        '4': ('Neural Network', 'models/neural_network_training_model.joblib')
     }
 
     st.sidebar.title("Select Model")
@@ -270,67 +290,68 @@ def main():
     if uploaded_file is not None:
         df = load_data(uploaded_file)
     else:
-        df = load_data('data/transactions_users_100.csv')
+        df = load_data('data/cleansed_dataset_users_0-99.csv')
         st.sidebar.write("Using default dataset for analysis.")
 
-    option = st.sidebar.selectbox("Choose an action", ["Make a prediction", "Evaluate the model", "Display feature importance", "Summary of Metrics", "Predict and Display Fraudulent Transactions", "Exit"])
+    if df is not None:
+        option = st.sidebar.selectbox("Choose an action", ["Make a prediction", "Evaluate the model", "Display feature importance", "Summary of Metrics", "Predict and Display Fraudulent Transactions", "Exit"])
 
-    if option == "Make a prediction":
-        row_index = st.sidebar.number_input(f"Enter the row index (0 to {len(df) - 1}) for prediction:", min_value=0, max_value=len(df) - 1, step=1)
-        row = select_row(df, row_index)
-        if row is not None:
-            pred_dict, prediction, prediction_proba = predict_row(loaded_model, row)
-            if pred_dict is not None:
-                display_prediction(pred_dict, prediction, prediction_proba)
-        st.markdown("This page allows you to make a prediction on a specific transaction by entering the row index or inputting values manually. You can view the prediction result and the details of the selected row.")
-        with st.expander("Learn more"):
-            st.markdown("""
-                On this page, you can:
-                - **Make a prediction**: Enter the row index of the transaction you want to predict.
-                - **View prediction results**: See whether the transaction is predicted to be fraudulent or legitimate.
-                - **View prediction probabilities**: Understand the confidence of the model's prediction.
-                - **Details of the selected row**: Examine the features of the selected transaction.
-            """)
+        if option == "Make a prediction":
+            row_index = st.sidebar.number_input(f"Enter the row index (0 to {len(df) - 1}) for prediction:", min_value=0, max_value=len(df) - 1, step=1)
+            row = select_row(df, row_index)
+            if row is not None:
+                pred_dict, prediction, prediction_proba = predict_row(loaded_model, row)
+                if pred_dict is not None:
+                    display_prediction(pred_dict, prediction, prediction_proba)
+            st.markdown("This page allows you to make a prediction on a specific transaction by entering the row index or inputting values manually. You can view the prediction result and the details of the selected row.")
+            with st.expander("Learn more"):
+                st.markdown("""
+                    On this page, you can:
+                    - **Make a prediction**: Enter the row index of the transaction you want to predict.
+                    - **View prediction results**: See whether the transaction is predicted to be fraudulent or legitimate.
+                    - **View prediction probabilities**: Understand the confidence of the model's prediction.
+                    - **Details of the selected row**: Examine the features of the selected transaction.
+                """)
 
-    elif option == "Evaluate the model":
-        evaluate_model(loaded_model, df)
-        st.markdown("This page provides an evaluation of the model's performance on the entire dataset, including metrics such as accuracy, classification report, and confusion matrix.")
-        with st.expander("Learn more"):
-            st.markdown("""
-                On this page, you can:
-                - **Evaluate the model**: Assess the performance of the model using metrics like accuracy, precision, recall, and F1-score.
-                - **View the confusion matrix**: Understand how many transactions were correctly and incorrectly classified.
-            """)
+        elif option == "Evaluate the model":
+            evaluate_model(loaded_model, df)
+            st.markdown("This page provides an evaluation of the model's performance on the entire dataset, including metrics such as accuracy, classification report, and confusion matrix.")
+            with st.expander("Learn more"):
+                st.markdown("""
+                    On this page, you can:
+                    - **Evaluate the model**: Assess the performance of the model using metrics like accuracy, precision, recall, and F1-score.
+                    - **View the confusion matrix**: Understand how many transactions were correctly and incorrectly classified.
+                """)
 
-    elif option == "Display feature importance":
-        display_feature_importance(loaded_model, df, top_n=20)
-        st.markdown("This page displays the top N feature importances used by the model. It helps in understanding which features are most influential in predicting the outcome.")
-        with st.expander("Learn more"):
-            st.markdown("""
-                On this page, you can:
-                - **View feature importances**: See which features have the most influence on the model's predictions.
-                - **Understand feature importance**: Learn how each feature contributes to the model's decision-making process.
-            """)
+        elif option == "Display feature importance":
+            display_feature_importance(loaded_model, df, top_n=20)
+            st.markdown("This page displays the top N feature importances used by the model. It helps in understanding which features are most influential in predicting the outcome.")
+            with st.expander("Learn more"):
+                st.markdown("""
+                    On this page, you can:
+                    - **View feature importances**: See which features have the most influence on the model's predictions.
+                    - **Understand feature importance**: Learn how each feature contributes to the model's decision-making process.
+                """)
 
-    elif option == "Summary of Metrics":
-        display_summary()
+        elif option == "Summary of Metrics":
+            display_summary()
 
-    elif option == "Predict and Display Fraudulent Transactions":
-        try:
-            X = df.drop(columns=["Is Fraud?"])
-            y_pred = loaded_model.predict(X)
-            df['Prediction'] = y_pred
-            fraudulent_transactions = df[df['Prediction'] == 1]
+        elif option == "Predict and Display Fraudulent Transactions":
+            try:
+                X = df.drop(columns=["Is Fraud?"])
+                y_pred = loaded_model.predict(X)
+                df['Prediction'] = y_pred
+                fraudulent_transactions = df[df['Prediction'] == 1]
 
-            st.subheader("Fraudulent Transactions")
-            st.write(f"Total fraudulent transactions detected: {len(fraudulent_transactions)}")
-            st.dataframe(fraudulent_transactions)
-        except Exception as e:
-            st.error(f"Error predicting fraudulent transactions: {e}")
+                st.subheader("Fraudulent Transactions")
+                st.write(f"Total fraudulent transactions detected: {len(fraudulent_transactions)}")
+                st.dataframe(fraudulent_transactions)
+            except Exception as e:
+                st.error(f"Error predicting fraudulent transactions: {e}")
 
-    elif option == "Exit":
-        st.markdown("You have chosen to exit the application. Thank you for using the model evaluation and prediction tool.")
-        st.stop()
+        elif option == "Exit":
+            st.markdown("You have chosen to exit the application. Thank you for using the model evaluation and prediction tool.")
+            st.stop()
 
 if __name__ == "__main__":
     st.write("Using scikit-learn version:", sklearn.__version__)
