@@ -11,7 +11,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, ConfusionMatrixDisplay
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, recall_score, ConfusionMatrixDisplay
 from imblearn.pipeline import Pipeline  
 from imblearn.under_sampling import RandomUnderSampler
 from pathlib import Path
@@ -136,7 +136,7 @@ def display_model_report(model, X_test, y_test):
     # Predict using the loaded model
     y_pred = model.predict(X_test)
 
-    col1, col2, col3 = st.columns([0.4, 0.3, 0.3])
+    col1, col2, col3 = st.columns([0.35, 0.25, 0.4])
 
     with col1:
     # Evaluation
@@ -148,10 +148,13 @@ def display_model_report(model, X_test, y_test):
                         target_names=['Not Fraud', 'Fraud'],
                         output_dict=True)).transpose()
                     )
-
-        st.markdown("#### Accuracy Score") 
-
-        st.markdown(f"###### {accuracy_score(y_test, y_pred):.3}")
+        col_accuracy, col_recall = st.columns(2)
+        with col_accuracy:
+            st.markdown("#### Accuracy Score") 
+            st.markdown(f"###### {accuracy_score(y_test, y_pred):.3}")
+        with col_recall:
+            st.markdown("#### Recall Score") 
+            st.markdown(f"###### {recall_score(y_test, y_pred):.3}")
 
     with col2:
         col2.subheader("Confusion Matrix")                
@@ -165,6 +168,14 @@ def display_model_report(model, X_test, y_test):
 
 
         st.pyplot(f)
+    with col3:
+        col3.subheader("Definitions for Fraudulent Metrics")
+        st.markdown("""
+- **Accuracy** is the percentage of examples correctly classified: $\dfrac{TP + TN}{P + N}$
+- **Precision** is the percentage of predicted positives that were correctly classified:  $\dfrac{TP}{TP + FP}$
+- **Recall** is the percentage of actual positives that were correctly classified: $\dfrac{TP}{TP + FN}$
+        """
+        )
 
 
 @st.cache_data
